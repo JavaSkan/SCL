@@ -1,6 +1,6 @@
 import cmds as c
 
-cmds = {"display":c.print_f,
+cmds = {"display":c.display_f,
 		"loop":c.loop_f,
 		"new":c.new_f,
 		"stt":c.state_f,

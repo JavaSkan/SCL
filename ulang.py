@@ -58,9 +58,8 @@ def get_instructions(body):
 
 def get_arr_values(arr_body):
 	assembled = "".join(arr_body)
-	assembled = assembled[1:assembled.__len__()-1]
+	assembled = assembled[1:len(assembled)-1]
 	assembled = assembled.split(",")
-	print(assembled)
 	return assembled
 
 

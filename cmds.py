@@ -2,10 +2,13 @@ import ulang as ul
 import allocable as al
 import env as ev
 
-def print_f(args):
+def display_f(args):
 	res = ""
 	for arg in args[1:]:
-		if arg == args[len(args)-1]:
+		if arg.startswith("$"):
+			val = ev.get_value_from_id(arg[1:])
+			res += val if val != None else arg
+		elif arg == args[len(args)-1]:
 			res += arg
 		else:
 			res += arg+" "						
