@@ -16,7 +16,7 @@ class Allocable:
         ev._VARS.append(allocable)
         allocable.maddr = ev._VARS.__len__()-1
 
-    def repr_val(self, value):
+    def repr_val(self):
         return f"{self.vl}"
 
 class Variable(Allocable):
@@ -28,9 +28,6 @@ class Variable(Allocable):
 
     def __repr__(self):
         return f"Var:({self.id}:{self.vl})"
-
-    def repr_val(self):
-        return f"{self.vl}"
 
 class Array(Allocable):
 

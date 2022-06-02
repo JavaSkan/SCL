@@ -1,4 +1,5 @@
 import funlink as fl
+import env as ev
 
 def parse(line):
 	res = line.split(" ")
@@ -62,6 +63,24 @@ def get_arr_values(arr_body):
 	assembled = assembled.split(",")
 	return assembled
 
+def replace_variable_reference(args):
+	reassembled = " ".join(args)
+	result_str = ""
+	ref_id = ""
+	i = 0
+	while i < len(reassembled):
+		if reassembled[i] == "$":
+			i += 1 if i < len(reassembled)-1 else 0
+			while i < len(reassembled) and reassembled[i] != " ":
+				ref_id += reassembled[i]
+				i += 1
+			result_str += ev.get_value_from_id(ref_id)
+			ref_id = ""
+		else:
+			result_str += reassembled[i]
+		i += 1
+	return result_str.split(" ")
+
 
 def execute(inst):
 	args = []
@@ -71,4 +90,9 @@ def execute(inst):
 		args = inst
 	else:
 		print("inst is neither list nor str (ulang.py)")
-	fl.cmds[gethead(args)](args)
+
+	args = replace_variable_reference(args)
+	try:
+		fl.cmds[gethead(args)](args)
+	except KeyError:
+		print(f"Command {gethead(args)} does not exist")
