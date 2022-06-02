@@ -1,6 +1,8 @@
 import funlink as fl
 import env as ev
 
+LETTERS = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+
 def parse(line):
 	res = line.split(" ")
 	for i in range(0,res.count("")):
@@ -65,21 +67,19 @@ def get_arr_values(arr_body):
 
 def replace_variable_reference(args):
 	reassembled = " ".join(args)
-	result_str = ""
 	ref_id = ""
 	i = 0
 	while i < len(reassembled):
 		if reassembled[i] == "$":
 			i += 1 if i < len(reassembled)-1 else 0
-			while i < len(reassembled) and reassembled[i] != " ":
+			while i < len(reassembled) and reassembled[i] in LETTERS:
 				ref_id += reassembled[i]
 				i += 1
-			result_str += ev.get_value_from_id(ref_id)
+			reassembled = reassembled.replace(f"${ref_id}",f"{ev.get_value_from_id(ref_id)}")
 			ref_id = ""
-		else:
-			result_str += reassembled[i]
+
 		i += 1
-	return result_str.split(" ")
+	return reassembled.split(" ")
 
 
 def execute(inst):

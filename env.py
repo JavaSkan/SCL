@@ -1,5 +1,4 @@
 _VARS = []
-_LOOP = 0
 _BOOL = False
 
 def get_value_from_id(id):
