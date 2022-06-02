@@ -34,9 +34,9 @@ class Array(Allocable):
 
     def __repr__(self):
         out = f"Array<{self.id}>:["
-        for i in range(self.len):
-            out += f"{self.vars[i]}"
-        out += "]"
+        for i in range(self.len-1):
+            out += f"{self.vars[i]},"
+        out += f"{self.vars[len(self.vars)-1]}]"
         return out
 
     def get_v(self,idx):

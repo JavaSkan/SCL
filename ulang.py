@@ -31,9 +31,9 @@ def get_arr_body(args):
 	for a in args:
 		if a.startswith("["):
 			start = True
-			body.append(a[1:])
+			body.append(a)
 		elif start and a.endswith("]"):
-			body.append(a[:len(a)-1])
+			body.append(a)
 			return body
 		elif start:
 			if a == args[len(args)-1]:
@@ -57,19 +57,12 @@ def get_instructions(body):
 	return insts
 
 def get_arr_values(arr_body):
-	insts = []
-	temp_vals = []
-	for i in range(0, len(arr_body)):
-		if arr_body[i] in [",\n", ","]:
-			insts.append(temp_vals[:])
-			temp_vals.clear()
-		elif arr_body[i] != "":
-			temp_vals.append(arr_body[i])
-	if temp_vals.__len__() > 0:
-		insts.append(temp_vals[:])
-		temp_vals.clear()
+	assembled = "".join(arr_body)
+	assembled = assembled[1:assembled.__len__()-1]
+	assembled = assembled.split(",")
+	print(assembled)
+	return assembled
 
-	return insts
 
 def execute(inst):
 	args = []
