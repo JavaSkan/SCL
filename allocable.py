@@ -1,41 +1,46 @@
 #Functions
-import ulang as u
+import env as ev
 
-class MemData:
-    def __init__(self,index,value):
-        self.index = index
-        self.value = value
+class Allocable:
+
+    def __init__(self, maddr):
+        self.maddr = maddr
+        self.alloc()
+
+    def get_mem_addr(self):
+        return self.maddr
+
+    def alloc(self):
+        ev._VARS.append(self)
+        self.maddr = ev._VARS.__len__()-1
+
+class Variable(Allocable):
+
+    def __init__(self, id:str, value):
+        self.id = id
+        self.vl = value
+        super().alloc()
 
     def __repr__(self):
-        return f'{self.index} : {self.value}'
+        return f"Var:({self.id}:{self.vl})"
 
+class Array(Allocable):
 
-class Memory:
-
-    def __init__(self):
-        self.elements: MemData = []
-        self.index = 0
-
-    def get_at(self,pos):
-        return self.elements[pos if pos < self.elements.__len__ else self.elements.__len__]
-
-    def allocate(self,value):
-        self.elements.append(MemData(self.index,value))
-        self.index += 1
-
-    def delete(self,pos):
-        self.elements.pop(pos)
-
-    def get_value(self,pos):
-        return self.get_at(pos).value
-
-class AFunction(MemData):
-    def __init__(self,id,insts):
+    def __init__(self, id:str, vars: list[Variable]):
         self.id = id
-        self.insts = insts
-        MemData.__init__(self)
+        self.vars = vars
+        self.len = vars.__len__()
+        super().alloc()
 
-class AVariable(MemData):
-    def __init__(self,id,value):
-        self.id = id
-        self.value = value
+    def __repr__(self):
+        out = f"Array<{self.id}>:["
+        for i in range(self.len):
+            out += f"{self.vars[i]}"
+        out += "]"
+        return out
+
+    def get_v(self,idx):
+        return self.vars[idx]
+
+    def rem_v(self,idx):
+        return self.vars.pop(idx)

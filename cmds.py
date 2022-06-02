@@ -1,5 +1,6 @@
-import funlink as fl
 import ulang as ul
+import allocable as al
+import env as ev
 
 def print_f(args):
 	res = ""
@@ -15,3 +16,16 @@ def loop_f(args):
 	for i in range(int(args[1])):
 		for ins in insts:
 			ul.execute(ins)
+
+def new_f(args):
+	if args[1] == "val":
+		al.Variable(args[2],args[3])
+	elif args[1] == "arr":
+		values = ul.get_arr_values(ul.get_arr_body(args))
+		al.Array(args[2],values)
+
+def state_f(args):
+	print(ev._VARS)
+
+def end_f(args):
+	quit()
