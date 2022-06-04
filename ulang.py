@@ -87,8 +87,8 @@ def replace_variable_reference(args):
 	x = 0
 	for a in args:
 		if type(a) is str:
-			if "$" in a:
-				dlr_count = a.count("$")
+			dlr_count = a.count("$")
+			if dlr_count > 0:
 				for k in range(dlr_count):
 					x = 0
 					while i < len(a):
@@ -111,7 +111,7 @@ def replace_variable_reference(args):
 							result.append(ev.get_value_from_id(ref_id))
 
 						ref_id = ""
-						i = 0
+					i = 0
 					x += 1
 			else:
 				result.append(a)

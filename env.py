@@ -8,4 +8,4 @@ def get_from_id(id):
     return None
 
 def get_value_from_id(id):
-    return get_from_id(id)
+    return get_from_id(id).vl
