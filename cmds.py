@@ -1,3 +1,4 @@
+import os
 import ulang as ul
 import allocable as al
 import env as ev
@@ -68,5 +69,20 @@ def delete_f(args):
 def set_f(args):
 	try:
 		ev.get_from_id(args[1]).vl = args[2]
+	except IndexError:
+		print("Args don't match")
+
+def execute_f(args):
+	try:
+		if os.path.exists(args[1]):
+			if args[1].endswith(".tui"):
+				with open(args[1],"r") as f:
+					lines = f.read().split("\n")
+					for line in lines:
+						ul.execute(line)
+			else:
+				print("Incorrect file extension")
+		else:
+			print("There is not such file")
 	except IndexError:
 		print("Args don't match")

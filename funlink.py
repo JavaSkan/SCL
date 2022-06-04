@@ -7,4 +7,5 @@ cmds = {"display":c.display_f,
 		"stt":c.state_f,
 		"end":c.end_f,
 		"clear":c.clear_f,
-		"delete":c.delete_f}
+		"delete":c.delete_f,
+		"exec":c.execute_f}
