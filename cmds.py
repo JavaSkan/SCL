@@ -55,3 +55,12 @@ def end_f(args):
 	elif args[1] == "1":
 		print("ended with a failure")
 	quit()
+
+def clear_f(args):
+	ev._VARS.clear()
+
+def delete_f(args):
+	try:
+		ev._VARS.pop(ev._VARS.index(ev.get_from_id(args[1])))
+	except IndexError:
+		print("Args don't match")
