@@ -1,7 +1,9 @@
+import string
+
 import funlink as fl
 import env as ev
 
-LETTERS = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+LETTERS = string.ascii_letters
 
 def parse(line):
 	res = line.split(" ")
@@ -14,19 +16,31 @@ def gethead(args):
 
 def getbody(args):
 	body = []
+	inner = []
 	start = False
-	for a in args:
-		if a.startswith("{"):
-			start = True
-			body.append(a[1:])
-		elif start and a.endswith("}"):
-			body.append(a[:len(a)-1])
+	i = 0
+	while i < len(args):
+		if type(args[i]) is list:
+			return args[i]
+		if args[i].startswith("{"):
+			if start == True:
+				inner = getbody(args[i:])
+				i += len(inner)-1
+				body.append(inner.copy())
+				inner.clear()
+			else:
+				start = True
+				body.append(args[i][1:])
+		elif start and args[i].endswith("}"):
+			body.append(args[i][:len(args[i])-1])
 			return body
 		elif start:
-			if a == args[len(args)-1]:
+			if args[i] == args[len(args)-1]:
 				print("Error: } expected; getbody function in ulang.py")
 			else:
-				body.append(a)
+				body.append(args[i])
+		i += 1
+	return body
 
 def get_arr_body(args):
 	body = []
@@ -66,20 +80,46 @@ def get_arr_values(arr_body):
 	return assembled
 
 def replace_variable_reference(args):
-	reassembled = " ".join(args)
+	result = []
 	ref_id = ""
+	is_end = False
 	i = 0
-	while i < len(reassembled):
-		if reassembled[i] == "$":
-			i += 1 if i < len(reassembled)-1 else 0
-			while i < len(reassembled) and reassembled[i] in LETTERS:
-				ref_id += reassembled[i]
-				i += 1
-			reassembled = reassembled.replace(f"${ref_id}",f"{ev.get_value_from_id(ref_id)}")
-			ref_id = ""
+	x = 0
+	for a in args:
+		if type(a) is str:
+			if "$" in a:
+				dlr_count = a.count("$")
+				for k in range(dlr_count):
+					x = 0
+					while i < len(a):
+						x = a.index("$")
 
-		i += 1
-	return reassembled.split(" ")
+						try:
+							a = a[:x] + a[x + 1:]  # remove the $ sign
+						except IndexError:
+							is_end = True
+
+						i = 0
+						while i < len(a) and a[i] in LETTERS and not is_end:
+							ref_id += a[i]
+							i += 1
+
+						# if the $ sign is alone then dont replace it just put it as it is
+						if ref_id == "":
+							result.append("$")
+						else:
+							result.append(ev.get_value_from_id(ref_id))
+
+						ref_id = ""
+						i = 0
+					x += 1
+			else:
+				result.append(a)
+		elif type(a) is list:
+			a = replace_variable_reference(a)
+			result.append(a)
+
+	return result
 
 
 def execute(inst):
