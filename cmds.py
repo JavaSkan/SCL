@@ -6,11 +6,17 @@ import env as ev
 def display_f(args):
 	try:
 		res = ""
+		add = ""
 		for arg in args[1:]:
+			if type(arg) is str:
+				add = arg
+			elif type(arg) is list:
+				add = " ".join(arg)
+
 			if arg == args[len(args)-1]:
-				res += arg
+				res += add
 			else:
-				res += arg+" "
+				res += add+" "
 		print(res)
 	except IndexError:
 		print("Args don't match")

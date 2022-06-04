@@ -34,7 +34,7 @@ class Variable(Allocable):
 class Array(Allocable):
 
     def __init__(self, id:str, vars: list[Variable]):
-        super().__init__(None, id, vars)
+        super().__init__(id, vars)
         self.len = len(vars)
 
     def __repr__(self):
