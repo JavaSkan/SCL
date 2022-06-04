@@ -3,18 +3,22 @@ import env as ev
 
 class Allocable:
 
-    def __init__(self, maddr, id:str, value):
-        self.maddr = maddr
+    def __init__(self, id:str, value):
+        self.maddr = None
         self.id = id
         self.vl = value
-        Allocable.alloc(self)
+        Allocable.alloc(self,self)
 
     def get_mem_addr(self):
         return self.maddr
 
     def alloc(cls, allocable):
-        ev._VARS.append(allocable)
-        allocable.maddr = ev._VARS.__len__()-1
+        dup = ev.get_from_id(allocable.id)
+        if dup == None:
+            ev._VARS.append(allocable)
+            allocable.maddr = ev._VARS.__len__() - 1
+        else:
+            print(f"'{allocable.id}' is already defined at address {dup.maddr}")
 
     def repr_val(self):
         return f"{self.vl}"
@@ -22,9 +26,7 @@ class Allocable:
 class Variable(Allocable):
 
     def __init__(self, id:str, value):
-        self.id = id
-        self.vl = value
-        super().alloc(self)
+        super().__init__(id, value)
 
     def __repr__(self):
         return f"Var:({self.id}:{self.vl})"
@@ -32,10 +34,8 @@ class Variable(Allocable):
 class Array(Allocable):
 
     def __init__(self, id:str, vars: list[Variable]):
-        self.id = id
-        self.vl = vars
+        super().__init__(None, id, vars)
         self.len = len(vars)
-        super().alloc(self)
 
     def __repr__(self):
         out = f"Array<{self.id}>:["
