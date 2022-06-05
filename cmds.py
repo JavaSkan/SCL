@@ -40,11 +40,16 @@ def new_f(args):
 				print("Variable name should be only formed with letters")
 				ul.execute("end ")
 
-		if args[1] == "val":
-			al.Variable(args[2],args[3])
+		if args[1] in al.DT_TYPES.TYPES:
+			if args[1] == "str":
+				al.Variable(args[1],args[2]," ".join(args[3:]))
+			else:
+				al.Variable(args[1],args[2],"".join(args[3:]))
 		elif args[1] == "arr":
 			values = ul.get_arr_values(ul.get_arr_body(args))
 			al.Array(args[2],values)
+		else:
+			print(f"Unknown type {args[1]}")
 	except IndexError:
 		print("Args don't match")
 
@@ -61,6 +66,7 @@ def end_f(args):
 		print("ended successfully")
 	elif args[1] == "1":
 		print("ended with a failure")
+	ev._VARS.clear()
 	quit()
 
 def clear_f(args):

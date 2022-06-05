@@ -12,7 +12,10 @@ def parse(line):
 	return res
 
 def gethead(args):
-	return args[0]
+	try:
+		return args[0]
+	except IndexError:
+		return ""
 
 def getbody(args):
 	body = []
@@ -135,4 +138,4 @@ def execute(inst):
 	try:
 		fl.cmds[gethead(args)](args)
 	except KeyError:
-		print(f"Command {gethead(args)} does not exist")
+		pass

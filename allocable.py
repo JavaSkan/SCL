@@ -1,5 +1,22 @@
-#Functions
+
 import env as ev
+
+#Enums
+class DT_TYPES:
+    TYPES = {
+        "int":0,
+        "flt":1,
+        "str":2
+    }
+
+    def repr(cls,dtt):
+         match cls.TYPES[dtt]:
+             case 0:
+                 return "integer"
+             case 1:
+                 return "float"
+             case 2:
+                 return "string"
 
 class Allocable:
 
@@ -25,11 +42,23 @@ class Allocable:
 
 class Variable(Allocable):
 
-    def __init__(self, id:str, value):
+    def __init__(self, type:str, id:str, value:str):
+        self.type = type
         super().__init__(id, value)
 
+    def get_value(self):
+        match DT_TYPES.TYPES.get(self.type):
+            case 0:
+                return int(self.vl)
+            case 1:
+                return float(self.vl)
+            case 2:
+                return self.vl
+            case _:
+                return self.vl
+
     def __repr__(self):
-        return f"Var:({self.id}:{self.vl})"
+        return f"Var:({self.id}<{DT_TYPES.repr(DT_TYPES,self.type)}>:{self.vl})"
 
 class Array(Allocable):
 
