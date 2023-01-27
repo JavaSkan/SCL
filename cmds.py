@@ -3,7 +3,26 @@ import ulang as ul
 import allocable as al
 import env as ev
 
+
 def display_f(args):
+	try:
+		res = ""
+		add = ""
+		for arg in args[1:]:
+			if type(arg) is str:
+				add = arg
+			elif type(arg) is list:
+				add = " ".join(arg)
+
+			if arg == args[len(args)-1]:
+				res += add
+			else:
+				res += add+" "
+		print(res,end="")
+	except IndexError:
+		print("Args don't match")
+
+def displayl_f(args):
 	try:
 		res = ""
 		add = ""
@@ -98,3 +117,60 @@ def execute_f(args):
 			print("There is not such file")
 	except IndexError:
 		print("Args don't match")
+
+def add_f(args):
+	var = ev.get_from_id(args[1])
+	try:
+		match al.DT_TYPES.TYPES[var.type]:
+			case al.DT_TYPES.INT:
+				var.vl = str(var.get_value() + int(args[2]))
+			case al.DT_TYPES.FLT:
+				var.vl = str(var.get_value() + float(args[2]))
+			case _:
+				print("The variable type is not a number")
+	except ValueError:
+		print("Types are mismatching")
+
+def sub_f(args):
+	var = ev.get_from_id(args[1])
+	if var.type in al.DT_TYPES.NUMBERS:
+		match al.DT_TYPES.TYPES[var.type]:
+			case al.DT_TYPES.INT:
+				var.vl = str(var.get_value() - int(args[2]))
+			case al.DT_TYPES.FLT:
+				var.vl = str(var.get_value() - float(args[2]))
+	else:
+		print("The variable type is not a number")
+
+def mul_f(args):
+	var = ev.get_from_id(args[1])
+	if var.type in al.DT_TYPES.NUMBERS:
+		match al.DT_TYPES.TYPES[var.type]:
+			case al.DT_TYPES.INT:
+				var.vl = str(var.get_value() * int(args[2]))
+			case al.DT_TYPES.FLT:
+				var.vl = str(var.get_value() * float(args[2]))
+	else:
+		print("The variable type is not a number")
+
+def div_f(args):
+	var = ev.get_from_id(args[1])
+	if var.type in al.DT_TYPES.NUMBERS:
+		match al.DT_TYPES.TYPES[var.type]:
+			case al.DT_TYPES.INT:
+				var.vl = str(var.get_value() / int(args[2]))
+			case al.DT_TYPES.FLT:
+				var.vl = str(var.get_value() / float(args[2]))
+	else:
+		print("The variable type is not a number")
+
+def pow_f(args):
+	var = ev.get_from_id(args[1])
+	if var.type in al.DT_TYPES.NUMBERS:
+		match al.DT_TYPES.TYPES[var.type]:
+			case al.DT_TYPES.INT:
+				var.vl = str(var.get_value() ** int(args[2]))
+			case al.DT_TYPES.FLT:
+				var.vl = str(var.get_value() ** float(args[2]))
+	else:
+		print("The variable type is not a number")

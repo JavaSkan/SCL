@@ -2,12 +2,36 @@
 import env as ev
 
 #Enums
+COUNT = 0
+
+def iota():
+    global COUNT
+    COUNT += 1
+    return COUNT
+
+def iota_limit():
+    global COUNT
+    COUNT = -1
+
 class DT_TYPES:
+
+    iota_limit()
+    INT = iota()
+    FLT = iota()
+    STR = iota()
+    iota_limit()
+
+
     TYPES = {
-        "int":0,
-        "flt":1,
-        "str":2
+        "int":INT,
+        "flt":FLT,
+        "str":STR
     }
+
+    NUMBERS = [
+        INT,
+        FLT
+    ]
 
     def repr(cls,dtt):
          match cls.TYPES[dtt]:

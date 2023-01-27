@@ -1,11 +1,18 @@
-import cmds as c
+from cmds import *
 
-cmds = {"display":c.display_f,
-		"loop":c.loop_f,
-		"new":c.new_f,
-		"set":c.set_f,
-		"stt":c.state_f,
-		"end":c.end_f,
-		"clear":c.clear_f,
-		"delete":c.delete_f,
-		"exec":c.execute_f}
+cmds = {"dp":	  display_f,
+		"dpl":	  displayl_f,
+		"loop":   loop_f,
+		"new":    new_f,
+		"set":    set_f,
+		"stt":    state_f,
+		"end":    end_f,
+		"clear":  clear_f,
+		"delete": delete_f,
+		"exec":   execute_f,
+		"add":    add_f,
+		"sub":    sub_f,
+		"mul":	  mul_f,
+		"div": 	  div_f,
+		"pow":	  pow_f
+		}
