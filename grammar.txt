@@ -1,0 +1,15 @@
+dp <...>
+dpl <...>
+loop <count> {block}
+new <type> <name> [<initial_value>]
+set <name> <new_value>
+stt
+end [0|1]
+clear
+delete <name>
+exec <file_name+extension>
+add <name> <value>
+sub <name> <value>
+mul <name> <value>
+div <name> <value>
+pow <name> <value>

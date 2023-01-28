@@ -9,11 +9,7 @@ def display_f(args):
 		res = ""
 		add = ""
 		for arg in args[1:]:
-			if type(arg) is str:
-				add = arg
-			elif type(arg) is list:
-				add = " ".join(arg)
-
+			add = ul.var_ref(arg)
 			if arg == args[len(args)-1]:
 				res += add
 			else:
@@ -27,10 +23,7 @@ def displayl_f(args):
 		res = ""
 		add = ""
 		for arg in args[1:]:
-			if type(arg) is str:
-				add = arg
-			elif type(arg) is list:
-				add = " ".join(arg)
+			add = ul.var_ref(arg)
 
 			if arg == args[len(args)-1]:
 				res += add
@@ -43,10 +36,14 @@ def displayl_f(args):
 
 def loop_f(args):
 	try:
-		insts = ul.get_instructions(ul.getbody(args))
-		for i in range(int(args[1])):
+		insts = ul.parse_block(args[2])
+		for i in range(int(ul.var_ref(args[1]))):
 			for ins in insts:
-				ul.execute(ins)
+				if type(ins) is str:
+					ul.execute(ins)
+				else:
+					ul.execute_block(ins)
+
 	except IndexError:
 		print("Args don't match")
 

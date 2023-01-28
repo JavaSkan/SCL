@@ -1,141 +1,113 @@
 import string
 
+import env
 import funlink as fl
 import env as ev
 
 LETTERS = string.ascii_letters
 
-def parse(line):
-	res = line.split(" ")
-	for i in range(0,res.count("")):
-		res.pop(res.index(""))
-	return res
+#char positions in string
+def cpos(inp: str, c) -> list:
+    poss = []
+    for i in range(len(inp)):
+        if inp[i] == c:
+            poss.append(i)
+    return poss
 
-def gethead(args):
-	try:
-		return args[0]
-	except IndexError:
-		return ""
+def gethead(args: list):
+    try:
+        return args[0]
+    except IndexError:
+        return ""
 
-def getbody(args):
-	body = []
-	inner = []
-	start = False
-	i = 0
-	while i < len(args):
-		if type(args[i]) is list:
-			return args[i]
-		if args[i].startswith("{"):
-			if start == True:
-				inner = getbody(args[i:])
-				i += len(inner)-1
-				body.append(inner.copy())
-				inner.clear()
-			else:
-				start = True
-				body.append(args[i][1:])
-		elif start and args[i].endswith("}"):
-			body.append(args[i][:len(args[i])-1])
-			return body
-		elif start:
-			if args[i] == args[len(args)-1]:
-				print("Error: } expected; getbody function in ulang.py")
-			else:
-				body.append(args[i])
-		i += 1
-	return body
+def parse_binp(inp: str, c) -> list:
+    res = []
+    sc_pos = cpos(inp, c)
+    lpos = cpos(inp, '{')
+    rpos = cpos(inp, '}')
+    if len(lpos) == len(rpos) == 0:
+        return inp.split(c)
+    prev_sc_pos = 0
+
+    for i in range(len(sc_pos)):
+        #checks if the ; is not included in a block
+        if sc_pos[i] < lpos[0] or sc_pos[i] > rpos[len(rpos)-1]:
+            res.append(inp[prev_sc_pos:sc_pos[i]])
+            prev_sc_pos = sc_pos[i]+1
+    res.append(inp[prev_sc_pos:len(inp)])
+    return res
+
+def parse(line: str) -> list:
+    return parse_binp(line,' ')
+
+def parse_block(inp: str) -> list:
+    lpos = cpos(inp,'{')
+    rpos = cpos(inp,'}')
+
+    if len(lpos) > len(rpos):
+        print(f"Missing {'}'} after the last one at position {rpos[len(rpos)-1]}")
+        return []
+    elif len(lpos) < len(rpos):
+        print(f"Missing {'{'} before the first one at position {lpos[0]}")
+        return []
+    elif len(lpos) == len(rpos) == 0:
+        return parse(inp)
+
+    res = parse_binp(inp[lpos[0]+1:rpos[len(rpos)-1]],';')
+
+    for i in range(len(res)):
+        if res[i].startswith(' '):
+            res[i] = res[i][1:]
+        if res[i].endswith(' '):
+            res[i] = res[i][:-1]
+        if res[i].startswith('{') and res[i].endswith('}'):
+            res[i] = parse_block(res[i])
+    return res
+
+def parse_instance(line: str) -> list:
+    return parse_binp(line, ';')
 
 def get_arr_body(args):
-	body = []
-	start = False
-	for a in args:
-		if a.startswith("["):
-			start = True
-			body.append(a)
-		elif start and a.endswith("]"):
-			body.append(a)
-			return body
-		elif start:
-			if a == args[len(args)-1]:
-				print("Error: ] expected; getbody function in ulang.py")
-			else:
-				body.append(a)
-
-def get_instructions(body):
-	insts = []
-	temp_inst = []
-	for i in range(0,len(body)):
-		if body[i] in [";\n",";"]:
-			insts.append(temp_inst[:])
-			temp_inst.clear()
-		elif body[i] != "":
-			temp_inst.append(body[i])
-	if temp_inst.__len__() > 0:
-		insts.append(temp_inst[:])
-		temp_inst.clear()
-
-	return insts
+    body = []
+    start = False
+    for a in args:
+        if a.startswith("["):
+            start = True
+            body.append(a)
+        elif start and a.endswith("]"):
+            body.append(a)
+            return body
+        elif start:
+            if a == args[len(args)-1]:
+                print("Error: ] expected; getbody function in ulang.py")
+            else:
+                body.append(a)
 
 def get_arr_values(arr_body):
-	assembled = "".join(arr_body)
-	assembled = assembled[1:len(assembled)-1]
-	assembled = assembled.split(",")
-	return assembled
+    assembled = "".join(arr_body)
+    assembled = assembled[1:len(assembled)-1]
+    assembled = assembled.split(",")
+    return assembled
 
-def replace_variable_reference(args):
-	result = []
-	ref_id = ""
-	is_end = False
-	i = 0
-	x = 0
-	for a in args:
-		if type(a) is str:
-			dlr_count = a.count("$")
-			if dlr_count > 0:
-				for k in range(dlr_count):
-					x = 0
-					while i < len(a):
-						x = a.index("$")
+def var_ref(id: str):
+    if id.startswith('$'):
+        if len(id) >= 1:
+            return env.get_value_from_id(id[1:])
+    else:
+        return id
 
-						try:
-							a = a[:x] + a[x + 1:]  # remove the $ sign
-						except IndexError:
-							is_end = True
-
-						i = 0
-						while i < len(a) and a[i] in LETTERS and not is_end:
-							ref_id += a[i]
-							i += 1
-
-						# if the $ sign is alone then dont replace it just put it as it is
-						if ref_id == "":
-							result.append("$")
-						else:
-							result.append(ev.get_value_from_id(ref_id))
-
-						ref_id = ""
-					i = 0
-					x += 1
-			else:
-				result.append(a)
-		elif type(a) is list:
-			a = replace_variable_reference(a)
-			result.append(a)
-
-	return result
 
 
 def execute(inst):
-	args = []
-	if type(inst) is str:
-		args = parse(inst)
-	elif type(inst) is list:
-		args = inst
-	else:
-		print("inst is neither list nor str (ulang.py)")
+    try:
+        parsed = parse(inst)
+        fl.cmds[gethead(parsed)](parsed)
+    except KeyError:
+        pass
 
-	args = replace_variable_reference(args)
-	try:
-		fl.cmds[gethead(args)](args)
-	except KeyError:
-		pass
+def execute_block(block: list):
+    for ins in block:
+        if type(ins) is str:
+            execute(ins)
+        elif type(ins) is list:
+            execute_block(ins)
