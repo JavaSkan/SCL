@@ -2,6 +2,7 @@ import os
 import ulang as ul
 import allocable as al
 import env as ev
+import manuals
 
 
 def display_f(args):
@@ -35,39 +36,32 @@ def displayl_f(args):
 
 
 def loop_f(args):
-	try:
-		insts = ul.parse_block(args[2])
-		for i in range(int(ul.var_ref(args[1]))):
-			for ins in insts:
-				if type(ins) is str:
-					ul.execute(ins)
-				else:
-					ul.execute_block(ins)
-
-	except IndexError:
-		print("Args don't match")
+	insts = ul.parse_block(args[2])
+	for i in range(int(ul.var_ref(args[1]))):
+		for ins in insts:
+			if type(ins) is str:
+				ul.execute(ins)
+			else:
+				ul.execute_block(ins)
 
 
 def new_f(args):
 	#valid name ?
-	try:
-		for c in args[2]:
-			if c not in ul.LETTERS:
-				print("Variable name should be only formed with letters")
-				ul.execute("end ")
+	for c in args[2]:
+		if c not in ul.LETTERS:
+			print("Variable name should be only formed with letters")
+			ul.execute("end ")
 
-		if args[1] in al.DT_TYPES.TYPES:
-			if args[1] == "str":
-				al.Variable(args[1],args[2]," ".join(args[3:]))
-			else:
-				al.Variable(args[1],args[2],"".join(args[3:]))
-		elif args[1] == "arr":
-			values = ul.get_arr_values(ul.get_arr_body(args))
-			al.Array(args[2],values)
+	if args[1] in al.DT_TYPES.TYPES:
+		if args[1] == "str":
+			al.Variable(args[1],args[2]," ".join(args[3:]))
 		else:
-			print(f"Unknown type {args[1]}")
-	except IndexError:
-		print("Args don't match")
+			al.Variable(args[1],args[2],"".join(args[3:]))
+	elif args[1] == "arr":
+		values = ul.get_arr_values(ul.get_arr_body(args))
+		al.Array(args[2],values)
+	else:
+		print(f"Unknown type {args[1]}")
 
 
 def state_f(args):
@@ -75,13 +69,18 @@ def state_f(args):
 	print(f"BOOL_STATE : {ev._BOOL}")
 
 def end_f(args):
+	if len(args) != 1:
+		if ul.var_ref(args[1]) == "0":
+			if len(args) == 3:
+				if ul.var_ref(args[2]) == "1":
+					print("ended successfully")
+		elif ul.var_ref(args[1]) == "1":
+			if len(args) == 3:
+				if ul.var_ref(args[2]) == "1":
+					print("ended with a failure")
+		else:
+			print("Unknown End Error")
 
-	if len(args) == 1:
-		print("user end")
-	elif args[1] == "0":
-		print("ended successfully")
-	elif args[1] == "1":
-		print("ended with a failure")
 	ev._VARS.clear()
 	quit()
 
@@ -171,3 +170,32 @@ def pow_f(args):
 				var.vl = str(var.get_value() ** float(args[2]))
 	else:
 		print("The variable type is not a number")
+
+def help_f(args):
+	match args[1]:
+		case 'dp':
+			print(manuals.DP)
+		case 'dpl':
+			print(manuals.DPL)
+		case 'loop':
+			print(manuals.LOOP)
+		case 'new':
+			print(manuals.NEW)
+		case 'set':
+			print(manuals.SET)
+		case 'stt':
+			print(manuals.STT)
+		case 'end':
+			print(manuals.END)
+		case 'clr':
+			print(manuals.CLR)
+		case 'del':
+			print(manuals.DEL)
+		case 'exec':
+			print(manuals.EXEC)
+		case 'add' | 'sub' | 'mul' | 'div' | 'pow':
+			print(manuals.OPERTS)
+		case 'help':
+			print(manuals.HELP)
+		case _:
+			print("Unknown Command")

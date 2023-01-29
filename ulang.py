@@ -103,7 +103,9 @@ def execute(inst):
         parsed = parse(inst)
         fl.cmds[gethead(parsed)](parsed)
     except KeyError:
-        pass
+        print('Unknown Command')
+    except IndexError:
+        print('Args don\'t match')
 
 def execute_block(block: list):
     for ins in block:
