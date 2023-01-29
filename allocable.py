@@ -1,4 +1,4 @@
-
+import ulang as ul
 import env as ev
 
 #Enums
@@ -102,3 +102,23 @@ class Array(Allocable):
 
     def rem_v(self,idx):
         return self.vl.pop(idx)
+
+class Function(Allocable):
+
+    def __init__(self, id:str, body: list):
+        self.bd = body
+        self.ret = None
+        super().__init__(id,self.ret)
+
+
+    def __repr__(self):
+        return f"Function:({self.id}:{self.vl})"
+
+    def execute_fun(self):
+        for ins in self.bd:
+            if type(ins) is str:
+                ul.execute(ins)
+            else:
+                ul.execute_block(ins)
+        self.vl = ev._FUN_RET
+        ev._FUN_RET = None

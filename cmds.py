@@ -47,10 +47,8 @@ def loop_f(args):
 
 def new_f(args):
 	#valid name ?
-	for c in args[2]:
-		if c not in ul.LETTERS:
-			print("Variable name should be only formed with letters")
-			ul.execute("end ")
+	if not ul.is_valid_name(args[2]):
+		print("Variable name should only be formed with Letters")
 
 	if args[1] in al.DT_TYPES.TYPES:
 		if args[1] == "str":
@@ -67,6 +65,7 @@ def new_f(args):
 def state_f(args):
 	print(f"ALLOCATIONS : {ev._VARS}")
 	print(f"BOOL_STATE : {ev._BOOL}")
+	print(f"FUNCTION RETURN VALUE : {ev._FUN_RET}")
 
 def end_f(args):
 	if len(args) != 1:
@@ -197,5 +196,21 @@ def help_f(args):
 			print(manuals.OPERTS)
 		case 'help':
 			print(manuals.HELP)
+		case 'fun':
+			print(manuals.FUN)
+		case 'ret':
+			print(manuals.RET)
 		case _:
 			print("Unknown Command")
+
+def fun_f(args):
+	if not ul.is_valid_name(args[1]):
+		print("Function name should only be formed with Letters")
+		ul.execute("end")
+	if len(args) == 2:
+		ev.get_from_id(args[1]).execute_fun()
+	elif len(args) == 3:
+		al.Function(args[1],ul.parse_block(args[2]))
+
+def ret_f(args):
+	ev._FUN_RET = ul.var_ref(args[1])

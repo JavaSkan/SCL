@@ -2,6 +2,7 @@ import allocable as al
 import ulang
 _VARS = []
 _BOOL = False
+_FUN_RET = None
 
 def get_from_id(id):
     for v in _VARS:

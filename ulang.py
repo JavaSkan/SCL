@@ -96,7 +96,11 @@ def var_ref(id: str):
     else:
         return id
 
-
+def is_valid_name(name: str) -> bool:
+    for c in name:
+        if c not in LETTERS:
+            return False
+    return True
 
 def execute(inst):
     try:
