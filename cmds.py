@@ -202,6 +202,8 @@ def help_f(args):
 			print(manuals.RET)
 		case 'vr':
 			print(manuals.VR)
+		case 'list':
+			print("dp, dpl, loop, new, set, stt, end, clr, del, exec, add, sub, mu, div, pow, help, fun, ret, vr")
 		case _:
 			print("Unknown Command, either it does not exist or there is no manual for it")
 

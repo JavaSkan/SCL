@@ -47,7 +47,8 @@ OPERTS  = '>>> Performs the wanted operation\n' + \
           ' -compatible with variable referencing (at <value> argument)'
 
 HELP    = '>>> Helps you with commands, seriously what did you expect ?\n' + \
-          'Syntax: help <cmd_name>'
+          'Syntax: help <cmd_name>|list\n' + \
+          'Typing "help list" shows you all manuals available'
 
 FUN     = '>>> Defines or calls a function\n' + \
           'Syntax: fun <name> [{body}]\n' + \
