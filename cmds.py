@@ -66,6 +66,7 @@ def state_f(args):
 	print(f"ALLOCATIONS : {ev._VARS}")
 	print(f"BOOL_STATE : {ev._BOOL}")
 	print(f"FUNCTION RETURN VALUE : {ev._FUN_RET}")
+	print(f"VARIABLE REFERENCING SYMBOL : {ev._VARREF_SYM}")
 
 def end_f(args):
 	if len(args) != 1:
@@ -87,31 +88,23 @@ def clear_f(args):
 	ev._VARS.clear()
 
 def delete_f(args):
-	try:
-		ev._VARS.pop(ev._VARS.index(ev.get_from_id(args[1])))
-	except IndexError:
-		print("Args don't match")
+	ev._VARS.pop(ev._VARS.index(ev.get_from_id(args[1])))
+
 
 def set_f(args):
-	try:
-		ev.get_from_id(args[1]).vl = ul.var_ref(args[2])
-	except IndexError:
-		print("Args don't match")
+	ev.get_from_id(args[1]).vl = ul.var_ref(args[2])
 
 def execute_f(args):
-	try:
-		if os.path.exists(args[1]):
-			if args[1].endswith(".tui"):
-				with open(args[1],"r") as f:
-					lines = f.read().split("\n")
-					for line in lines:
-						ul.execute(line)
-			else:
-				print("Incorrect file extension")
+	if os.path.exists(args[1]):
+		if args[1].endswith(".tui"):
+			with open(args[1],"r") as f:
+				lines = f.read().split("\n")
+				for line in lines:
+					ul.execute(line)
 		else:
-			print("There is not such file")
-	except IndexError:
-		print("Args don't match")
+			print("Incorrect file extension")
+	else:
+		print("There is not such file")
 
 def add_f(args):
 	var = ev.get_from_id(args[1])
