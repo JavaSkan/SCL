@@ -200,8 +200,10 @@ def help_f(args):
 			print(manuals.FUN)
 		case 'ret':
 			print(manuals.RET)
+		case 'vr':
+			print(manuals.VR)
 		case _:
-			print("Unknown Command")
+			print("Unknown Command, either it does not exist or there is no manual for it")
 
 def fun_f(args):
 	if not ul.is_valid_name(args[1]):
@@ -214,3 +216,11 @@ def fun_f(args):
 
 def ret_f(args):
 	ev._FUN_RET = ul.var_ref(args[1])
+
+def vr_f(args):
+	if args[1] == 'set':
+		ev._VARREF_SYM = args[2]
+	elif args[1] == 'reset':
+		ev._VARREF_SYM = '$'
+	else:
+		print(f'{args[1]} is not a valid argument for this command')

@@ -1,8 +1,9 @@
 import allocable as al
-import ulang
+
 _VARS = []
 _BOOL = False
 _FUN_RET = None
+_VARREF_SYM = '$'
 
 def get_from_id(id):
     for v in _VARS:
@@ -19,5 +20,5 @@ def get_value_from_id(id):
             try:
                 return var.vl
             except AttributeError:
-                print(f"There is no field with id '{id}'")
+                print(f"There is no allocated element with id '{id}'")
                 quit()

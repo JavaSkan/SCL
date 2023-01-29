@@ -90,11 +90,10 @@ def get_arr_values(arr_body):
     return assembled
 
 def var_ref(id: str):
-    if id.startswith('$'):
-        if len(id) >= 1:
-            return env.get_value_from_id(id[1:])
-    else:
-        return id
+    if id.startswith(ev._VARREF_SYM):
+        if len(id) > 1:
+            return str(env.get_value_from_id(id[1:]))
+    return id
 
 def is_valid_name(name: str) -> bool:
     for c in name:
