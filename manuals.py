@@ -16,7 +16,8 @@ NEW     = '>>> Creates a new variable\n' + \
           'NOTE: compatible with variable referencing (at <initial_value> field)'
 
 SET     = '>>> Modifies the value of a variable\n' + \
-          'Syntax: set <name> <new_value>'
+          'Syntax: set <name> <new_value>\n' + \
+          'NOTE: compatible with variable referencing (at <new_value> field)'
 
 STT     = '>>> Shows the environment state\n' + \
           'Syntax: stt'
