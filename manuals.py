@@ -12,7 +12,8 @@ LOOP    = '>>> Repeats a set of instructions\n' + \
 
 NEW     = '>>> Creates a new variable\n' + \
           'Syntax: new <type> <name> [<initial_value>]\n' + \
-          'Types are: int flt and str'
+          'Types are: int flt and str\n' + \
+          'NOTE: compatible with variable referencing (at <initial_value> field)'
 
 SET     = '>>> Modifies the value of a variable\n' + \
           'Syntax: set <name> <new_value>'

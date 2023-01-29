@@ -4,7 +4,7 @@ import allocable as al
 import env as ev
 import manuals
 
-
+#TODO fix display commands not supporting arrays
 def display_f(args):
 	try:
 		res = ""
@@ -54,9 +54,9 @@ def new_f(args):
 
 	if args[1] in al.DT_TYPES.TYPES:
 		if args[1] == "str":
-			al.Variable(args[1],args[2]," ".join(args[3:]))
+			al.Variable(args[1],args[2],ul.var_ref(" ".join(args[3:])))
 		else:
-			al.Variable(args[1],args[2],"".join(args[3:]))
+			al.Variable(args[1],args[2],ul.var_ref("".join(args[3:])))
 	elif args[1] == "arr":
 		values = ul.get_arr_values(ul.get_arr_body(args))
 		al.Array(args[2],values)
