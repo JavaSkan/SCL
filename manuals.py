@@ -35,7 +35,8 @@ EXEC    = '>>> Executes TUI script\n' + \
           'Syntax: exec <file_name_with_extension>'
 
 OPERTS  = '>>> Performs the wanted operation\n' + \
-          'Syntax: add|sub|mul|div|pow <name> <value>'
+          'Syntax: add|sub|mul|div|pow <name> <value>\n' + \
+          'NOTE: compatible with variable referencing (at <value> field)'
 
 HELP    = '>>> Helps you with commands, seriously what did you expect ?\n' + \
           'Syntax: help <cmd_name>'

@@ -119,9 +119,9 @@ def add_f(args):
 	try:
 		match al.DT_TYPES.TYPES[var.type]:
 			case al.DT_TYPES.INT:
-				var.vl = str(var.get_value() + int(args[2]))
+				var.vl = str(var.get_value() + int(ul.var_ref(args[2])))
 			case al.DT_TYPES.FLT:
-				var.vl = str(var.get_value() + float(args[2]))
+				var.vl = str(var.get_value() + float(ul.var_ref(args[2])))
 			case _:
 				print("The variable type is not a number")
 	except ValueError:
@@ -129,45 +129,45 @@ def add_f(args):
 
 def sub_f(args):
 	var = ev.get_from_id(args[1])
-	if var.type in al.DT_TYPES.NUMBERS:
+	if al.DT_TYPES.TYPES[var.type] in al.DT_TYPES.NUMBERS:
 		match al.DT_TYPES.TYPES[var.type]:
 			case al.DT_TYPES.INT:
-				var.vl = str(var.get_value() - int(args[2]))
+				var.vl = str(var.get_value() - int(ul.var_ref(args[2])))
 			case al.DT_TYPES.FLT:
-				var.vl = str(var.get_value() - float(args[2]))
+				var.vl = str(var.get_value() - float(ul.var_ref(args[2])))
 	else:
 		print("The variable type is not a number")
 
 def mul_f(args):
 	var = ev.get_from_id(args[1])
-	if var.type in al.DT_TYPES.NUMBERS:
+	if al.DT_TYPES.TYPES[var.type] in al.DT_TYPES.NUMBERS:
 		match al.DT_TYPES.TYPES[var.type]:
 			case al.DT_TYPES.INT:
-				var.vl = str(var.get_value() * int(args[2]))
+				var.vl = str(var.get_value() * int(ul.var_ref(args[2])))
 			case al.DT_TYPES.FLT:
-				var.vl = str(var.get_value() * float(args[2]))
+				var.vl = str(var.get_value() * float(ul.var_ref(args[2])))
 	else:
 		print("The variable type is not a number")
 
 def div_f(args):
 	var = ev.get_from_id(args[1])
-	if var.type in al.DT_TYPES.NUMBERS:
+	if al.DT_TYPES.TYPES[var.type] in al.DT_TYPES.NUMBERS:
 		match al.DT_TYPES.TYPES[var.type]:
 			case al.DT_TYPES.INT:
-				var.vl = str(var.get_value() / int(args[2]))
+				var.vl = str(var.get_value() / int(ul.var_ref(args[2])))
 			case al.DT_TYPES.FLT:
-				var.vl = str(var.get_value() / float(args[2]))
+				var.vl = str(var.get_value() / float(ul.var_ref(args[2])))
 	else:
 		print("The variable type is not a number")
 
 def pow_f(args):
 	var = ev.get_from_id(args[1])
-	if var.type in al.DT_TYPES.NUMBERS:
+	if al.DT_TYPES.TYPES[var.type] in al.DT_TYPES.NUMBERS:
 		match al.DT_TYPES.TYPES[var.type]:
 			case al.DT_TYPES.INT:
-				var.vl = str(var.get_value() ** int(args[2]))
+				var.vl = str(var.get_value() ** int(ul.var_ref(args[2])))
 			case al.DT_TYPES.FLT:
-				var.vl = str(var.get_value() ** float(args[2]))
+				var.vl = str(var.get_value() ** float(ul.var_ref(args[2])))
 	else:
 		print("The variable type is not a number")
 
