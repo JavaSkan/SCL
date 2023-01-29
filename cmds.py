@@ -95,7 +95,7 @@ def delete_f(args):
 
 def set_f(args):
 	try:
-		ev.get_from_id(args[1]).vl = args[2]
+		ev.get_from_id(args[1]).vl = ul.var_ref(args[2])
 	except IndexError:
 		print("Args don't match")
 
