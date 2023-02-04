@@ -25,12 +25,13 @@ def parse_binp(inp: str, c) -> list:
     sc_pos = cpos(inp, c)
     lpos = cpos(inp, '{')
     rpos = cpos(inp, '}')
+    #if there is no { or } then it returns the whole split string
     if len(lpos) == len(rpos) == 0:
         return inp.split(c)
     prev_sc_pos = 0
 
     for i in range(len(sc_pos)):
-        #checks if the ; is not included in a block
+        #checks if the ; is not included in a block, or array
         if sc_pos[i] < lpos[0] or sc_pos[i] > rpos[len(rpos)-1]:
             res.append(inp[prev_sc_pos:sc_pos[i]])
             prev_sc_pos = sc_pos[i]+1
@@ -67,29 +68,31 @@ def parse_block(inp: str) -> list:
 def parse_instance(line: str) -> list:
     return parse_binp(line, ';')
 
-def get_arr_body(args):
-    body = []
-    start = False
-    for a in args:
-        if a.startswith("["):
-            start = True
-            body.append(a)
-        elif start and a.endswith("]"):
-            body.append(a)
-            return body
-        elif start:
-            if a == args[len(args)-1]:
-                print("Error: ] expected; getbody function in ulang.py")
-            else:
-                body.append(a)
+def parse_arr(inp):
+    lpos = cpos(inp, '[')
+    rpos = cpos(inp, ']')
 
-def get_arr_values(arr_body):
-    assembled = "".join(arr_body)
-    assembled = assembled[1:len(assembled)-1]
-    assembled = assembled.split(",")
-    return assembled
+    if len(lpos) > len(rpos):
+        print(f"Missing {']'} after the last one at position {rpos[len(rpos) - 1]}")
+        return []
+    elif len(lpos) < len(rpos):
+        print(f"Missing {'['} before the first one at position {lpos[0]}")
+        return []
+    elif len(lpos) == len(rpos) == 0:
+        return parse(inp)
 
-def var_ref(id: str):
+    res = parse_binp(inp[lpos[0] + 1:rpos[len(rpos) - 1]], ',')
+
+    for i in range(len(res)):
+        if res[i].startswith(' '):
+            res[i] = res[i][1:]
+        if res[i].endswith(' '):
+            res[i] = res[i][:-1]
+        if res[i].startswith('[') and res[i].endswith(']'):
+            res[i] = parse_block(res[i])
+    return res
+
+def var_ref(id: str) -> str:
     if id.startswith(ev._VARREF_SYM):
         if len(id) > 1:
             return str(env.get_value_from_id(id[1:]))
@@ -100,6 +103,13 @@ def is_valid_name(name: str) -> bool:
         if c not in LETTERS:
             return False
     return True
+
+def rem_endline(inp: str) -> str:
+    out = ""
+    for c in str:
+        if c != '\n':
+            out += c
+    return out
 
 def execute(inst):
     try:

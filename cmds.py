@@ -56,8 +56,7 @@ def new_f(args):
 		else:
 			al.Variable(args[1],args[2],ul.var_ref("".join(args[3:])))
 	elif args[1] == "arr":
-		values = ul.get_arr_values(ul.get_arr_body(args))
-		al.Array(args[2],values)
+		al.Array(args[2],ul.parse_arr(args[3]))
 	else:
 		print(f"Unknown type {args[1]}")
 
