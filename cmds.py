@@ -4,7 +4,6 @@ import allocable as al
 import env as ev
 import manuals
 
-#TODO fix display commands not supporting arrays
 def display_f(args):
 	try:
 		res = ""
