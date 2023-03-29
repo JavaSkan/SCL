@@ -35,7 +35,7 @@ def displayl_f(args):
 
 
 def loop_f(args):
-	insts = ul.parse_block(args[2])
+	insts = ul.parse_body(args[2])
 	for i in range(int(ul.var_ref(args[1]))):
 		for ins in insts:
 			if type(ins) is str:
@@ -205,7 +205,9 @@ def fun_f(args):
 	if len(args) == 2:
 		ev.get_from_id(args[1]).execute_fun()
 	elif len(args) == 3:
-		al.Function(args[1],ul.parse_block(args[2]))
+		al.Function(args[1], ul.parse_body(args[2]))
+	elif len(args) == 4:
+		al.Function(args[1],ul.parse_params(args[2]),ul.parse_body(args[3]))
 
 def ret_f(args):
 	ev._FUN_RET = ul.var_ref(args[1])

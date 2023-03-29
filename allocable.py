@@ -1,6 +1,6 @@
 import ulang as ul
 import env as ev
-
+import allocable as al
 #Enums
 COUNT = 0
 
@@ -105,8 +105,10 @@ class Array(Allocable):
 
 class Function(Allocable):
 
-    def __init__(self, id:str, body: list):
+    def __init__(self, id:str,params:list,body:list):
+        self.pm = [] if params == None else params
         self.bd = body
+        self.locals = []
         self.ret = None
         super().__init__(id,self.ret)
 
@@ -114,11 +116,24 @@ class Function(Allocable):
     def __repr__(self):
         return f"Function:({self.id}:{self.vl})"
 
+    def init_params(self):
+        for p in self.pm:
+            temp = ul.parse(p)
+            if len(temp) == 2:
+                self.locals.append(al.Variable(temp[0], temp[1], '0'))
+            elif len(temp) == 3:
+                self.locals.append(al.Variable(temp[0], temp[1], ul.var_ref(temp[2])))
+
+    def del_locals(self):
+        for l in self.locals:
+            ul.execute(f'del {l.id}')
     def execute_fun(self):
+        self.init_params()
         for ins in self.bd:
             if type(ins) is str:
                 ul.execute(ins)
             else:
                 ul.execute_block(ins)
         self.vl = ev._FUN_RET
+        self.del_locals()
         ev._FUN_RET = None

@@ -1,9 +1,9 @@
 import allocable as al
 
-_VARS = []
-_BOOL = False
-_FUN_RET = None
-_VARREF_SYM = '$'
+_VARS = []        #variables
+_BOOL = False     #boolean result
+_FUN_RET = None   #Function return
+_VARREF_SYM = '$' #Variable reference symbol
 
 def get_from_id(id):
     for v in _VARS:

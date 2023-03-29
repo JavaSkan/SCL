@@ -15,7 +15,7 @@ LOOP    = '>>> Repeats a set of instructions\n' + \
 
 NEW     = '>>> Creates a new variable\n' + \
           'Syntax: new <type> <name> [<initial_value>]\n' + \
-          'Types are: int flt and str\n' + \
+          'Types are: int flt arr and str\n' + \
           'NOTE:\n'+\
           ' -compatible with variable referencing (at <initial_value> argument)'
 
@@ -51,11 +51,13 @@ HELP    = '>>> Helps you with commands, seriously what did you expect ?\n' + \
           'Typing "help list" shows you all manuals available'
 
 FUN     = '>>> Defines or calls a function\n' + \
-          'Syntax: fun <name> [{body}]\n' + \
+          'Syntax: fun <name> [(params)] [{body}]\n' + \
           'If {body} is mentioned then fun command defines a function, if not then it will call the function with name <name>\n' + \
+          'params are defined as: <type> <name> [value (optional)]\n'+\
+          'params are also compatible with variable referencing (at [value])\n'+\
           'NOTE:\n'+\
           ' -before calling a function, its value is null (or None). if you want the function to return something use ret function inside its body and then call it to set its value\n' + \
-          ' -The function will keep its previous value until recalling it, and variable created in its content will remain after exiting its execution\n' + \
+          ' -The function will keep its previous value until recalling it, and variables created in its content will remain after exiting its execution unlike parameters which are deleted\n' + \
           ' -For more information about ret command, type "help ret"'
 
 RET     = '>>> Returns a value in a function context\n' + \
