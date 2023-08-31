@@ -30,7 +30,9 @@ STT     = '>>> Shows the environment state\n' + \
 END     = '>>> Ends the program\n' + \
           'Syntax: end [0|1] [1]\n' + \
           '0 for success and 1 for failure, nothing for used end\n' + \
-          'If second argument is 1 then a msg with appear otherwise nothing will show'
+          'If second argument is 1 then a msg with appear otherwise nothing will show\n'+\
+          'NOTE:\n'+\
+          ' -compatible with variable referencing with both arguments'
 
 CLR     = '>>> Clears the environment\n' + \
           'Syntax: clr'
@@ -50,9 +52,8 @@ HELP    = '>>> Helps you with commands, seriously what did you expect ?\n' + \
           'Syntax: help <cmd_name>|list\n' + \
           'Typing "help list" shows you all manuals available'
 
-FUN     = '>>> Defines or calls a function\n' + \
-          'Syntax: fun <name> [(params)] [{body}]\n' + \
-          'If {body} is mentioned then fun command defines a function, if not then it will call the function with name <name>\n' + \
+FUN     = '>>> Defines a function\n' + \
+          'Syntax: fun <name> [(params)] {body}\n' + \
           'params are defined as: <type> <name> [value (optional)]\n'+\
           'params are also compatible with variable referencing (at [value])\n'+\
           'NOTE:\n'+\
@@ -71,3 +72,7 @@ VR      = '>>> Changes the default character for variable referencing\n' + \
           '<new_character> should be defined if first argument is "set"\n'+ \
           'By default it\'s "$"'
 
+CALL    = '>>> Calls a function\n' + \
+          'Syntax: call <name> [argument(s)]\n' + \
+          'NOTE:\n' + \
+          ' -compatible with variable referencing (at [argument(s)])\n'

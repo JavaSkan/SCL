@@ -3,40 +3,31 @@ import ulang as ul
 import allocable as al
 import env as ev
 import manuals
+import TuiErrors as terr
 
 def display_f(args):
 	try:
 		res = ""
 		add = ""
-		for arg in args[1:]:
+		for i,arg in enumerate(args):
 			add = ul.var_ref(arg)
-			if arg == args[len(args)-1]:
-				res += add
-			else:
-				res += add+" "
+			res += add
+			res += " " if i != len(args)-1 else " "
 		print(res,end="")
 	except IndexError:
 		print("Args don't match")
 
 def displayl_f(args):
 	try:
-		res = ""
-		add = ""
-		for arg in args[1:]:
-			add = ul.var_ref(arg)
-
-			if arg == args[len(args)-1]:
-				res += add
-			else:
-				res += add+" "
-		print(res)
+		display_f(args)
+		print()
 	except IndexError:
 		print("Args don't match")
 
 
 def loop_f(args):
-	insts = ul.parse_body(args[2])
-	for i in range(int(ul.var_ref(args[1]))):
+	insts = ul.parse_body(args[1])
+	for i in range(int(ul.var_ref(args[0]))):
 		for ins in insts:
 			if type(ins) is str:
 				ul.execute(ins)
@@ -45,19 +36,17 @@ def loop_f(args):
 
 
 def new_f(args):
-	#valid name ?
-	if not ul.is_valid_name(args[2]):
-		print("Variable name should only be formed with Letters")
-
-	if args[1] in al.DT_TYPES.TYPES:
-		if args[1] == "str":
-			al.Variable(args[1],args[2],ul.var_ref(" ".join(args[3:])))
+	if not ul.is_valid_name(args[1]):
+		raise terr.TuiInvalidNameError(args[0])
+	if args[0] in al.DT_TYPES.TYPES:
+		if args[0] == "str":
+			al.Variable(args[0],args[1],ul.var_ref(" ".join(args[2:])))
 		else:
-			al.Variable(args[1],args[2],ul.var_ref("".join(args[3:])))
-	elif args[1] == "arr":
-		al.Array(args[2],ul.parse_arr(args[3]))
+			al.Variable(args[0],args[1],ul.var_ref("".join(args[2:])))
+	elif args[0] == "arr":
+		al.Array(args[1],ul.parse_arr(args[2]))
 	else:
-		print(f"Unknown type {args[1]}")
+		print(f"Unknown type {args[0]}")
 
 
 def state_f(args):
@@ -67,18 +56,17 @@ def state_f(args):
 	print(f"VARIABLE REFERENCING SYMBOL : {ev._VARREF_SYM}")
 
 def end_f(args):
-	if len(args) != 1:
-		if ul.var_ref(args[1]) == "0":
-			if len(args) == 3:
-				if ul.var_ref(args[2]) == "1":
+	if (alen := len(args)) != 0:
+		if (fst_arg := ul.var_ref(args[0])) == "0":
+			if alen == 2:
+				if ul.var_ref(args[1]) == "1":
 					print("ended successfully")
-		elif ul.var_ref(args[1]) == "1":
-			if len(args) == 3:
-				if ul.var_ref(args[2]) == "1":
+		elif fst_arg == "1":
+			if alen == 2:
+				if ul.var_ref(args[1]) == "1":
 					print("ended with a failure")
 		else:
 			print("Unknown End Error")
-
 	ev._VARS.clear()
 	quit()
 
@@ -86,16 +74,16 @@ def clear_f(args):
 	ev._VARS.clear()
 
 def delete_f(args):
-	ev._VARS.pop(ev._VARS.index(ev.get_from_id(args[1])))
+	ev._VARS.pop(ev._VARS.index(ev.get_from_id(args[0])))
 
 
 def set_f(args):
-	ev.get_from_id(args[1]).vl = ul.var_ref(args[2])
+	ev.get_from_id(args[0]).vl = ul.var_ref(args[1])
 
 def execute_f(args):
-	if os.path.exists(args[1]):
-		if args[1].endswith(".tui"):
-			with open(args[1],"r") as f:
+	if os.path.exists(args[0]):
+		if args[0].endswith(".tui"):
+			with open(args[0],"r") as f:
 				lines = f.read().split("\n")
 				for line in lines:
 					ul.execute(line)
@@ -105,64 +93,64 @@ def execute_f(args):
 		print("There is not such file")
 
 def add_f(args):
-	var = ev.get_from_id(args[1])
+	var = ev.get_from_id(args[0])
 	try:
 		match al.DT_TYPES.TYPES[var.type]:
 			case al.DT_TYPES.INT:
-				var.vl = str(var.get_value() + int(ul.var_ref(args[2])))
+				var.vl = str(var.get_value() + int(ul.var_ref(args[1])))
 			case al.DT_TYPES.FLT:
-				var.vl = str(var.get_value() + float(ul.var_ref(args[2])))
+				var.vl = str(var.get_value() + float(ul.var_ref(args[1])))
 			case _:
 				print("The variable type is not a number")
 	except ValueError:
 		print("Types are mismatching")
 
 def sub_f(args):
-	var = ev.get_from_id(args[1])
+	var = ev.get_from_id(args[0])
 	if al.DT_TYPES.TYPES[var.type] in al.DT_TYPES.NUMBERS:
 		match al.DT_TYPES.TYPES[var.type]:
 			case al.DT_TYPES.INT:
-				var.vl = str(var.get_value() - int(ul.var_ref(args[2])))
+				var.vl = str(var.get_value() - int(ul.var_ref(args[1])))
 			case al.DT_TYPES.FLT:
-				var.vl = str(var.get_value() - float(ul.var_ref(args[2])))
+				var.vl = str(var.get_value() - float(ul.var_ref(args[1])))
 	else:
 		print("The variable type is not a number")
 
 def mul_f(args):
-	var = ev.get_from_id(args[1])
+	var = ev.get_from_id(args[0])
 	if al.DT_TYPES.TYPES[var.type] in al.DT_TYPES.NUMBERS:
 		match al.DT_TYPES.TYPES[var.type]:
 			case al.DT_TYPES.INT:
-				var.vl = str(var.get_value() * int(ul.var_ref(args[2])))
+				var.vl = str(var.get_value() * int(ul.var_ref(args[1])))
 			case al.DT_TYPES.FLT:
-				var.vl = str(var.get_value() * float(ul.var_ref(args[2])))
+				var.vl = str(var.get_value() * float(ul.var_ref(args[1])))
 	else:
 		print("The variable type is not a number")
 
 def div_f(args):
-	var = ev.get_from_id(args[1])
+	var = ev.get_from_id(args[0])
 	if al.DT_TYPES.TYPES[var.type] in al.DT_TYPES.NUMBERS:
 		match al.DT_TYPES.TYPES[var.type]:
 			case al.DT_TYPES.INT:
-				var.vl = str(var.get_value() / int(ul.var_ref(args[2])))
+				var.vl = str(var.get_value() / int(ul.var_ref(args[1])))
 			case al.DT_TYPES.FLT:
-				var.vl = str(var.get_value() / float(ul.var_ref(args[2])))
+				var.vl = str(var.get_value() / float(ul.var_ref(args[1])))
 	else:
 		print("The variable type is not a number")
 
 def pow_f(args):
-	var = ev.get_from_id(args[1])
+	var = ev.get_from_id(args[0])
 	if al.DT_TYPES.TYPES[var.type] in al.DT_TYPES.NUMBERS:
 		match al.DT_TYPES.TYPES[var.type]:
 			case al.DT_TYPES.INT:
-				var.vl = str(var.get_value() ** int(ul.var_ref(args[2])))
+				var.vl = str(var.get_value() ** int(ul.var_ref(args[1])))
 			case al.DT_TYPES.FLT:
-				var.vl = str(var.get_value() ** float(ul.var_ref(args[2])))
+				var.vl = str(var.get_value() ** float(ul.var_ref(args[1])))
 	else:
 		print("The variable type is not a number")
 
 def help_f(args):
-	match args[1]:
+	match args[0]:
 		case 'dp':
 			print(manuals.DP)
 		case 'dpl':
@@ -193,29 +181,38 @@ def help_f(args):
 			print(manuals.RET)
 		case 'vr':
 			print(manuals.VR)
+		case 'call':
+			print(manuals.CALL)
 		case 'list':
-			print("dp, dpl, loop, new, set, stt, end, clr, del, exec, add, sub, mu, div, pow, help, fun, ret, vr")
+			print("dp, dpl, loop, new, set, stt, end, clr, del, exec, add, sub, mu, div, pow, help, fun, ret, vr, call")
 		case _:
 			print("Unknown Command, either it does not exist or there is no manual for it")
 
 def fun_f(args):
-	if not ul.is_valid_name(args[1]):
-		print("Function name should only be formed with Letters")
-		ul.execute("end")
-	if len(args) == 2:
-		ev.get_from_id(args[1]).execute_fun()
-	elif len(args) == 3:
-		al.Function(args[1], ul.parse_body(args[2]))
-	elif len(args) == 4:
-		al.Function(args[1],ul.parse_params(args[2]),ul.parse_body(args[3]))
+	if not ul.is_valid_name(args[0]):
+		raise terr.TuiInvalidNameError(args[0])
+
+	#fun <name> {body}
+	if (alen := len(args)) == 2:
+		al.Function(args[0],None,ul.parse_body(args[1]))
+	#fun <name> (params) {body}
+	elif alen == 3:
+		al.Function(args[0],ul.parse_params(args[1]),ul.parse_body(args[2]))
 
 def ret_f(args):
-	ev._FUN_RET = ul.var_ref(args[1])
+	ev._FUN_RET = ul.var_ref(args[0])
 
 def vr_f(args):
-	if args[1] == 'set':
-		ev._VARREF_SYM = args[2]
-	elif args[1] == 'reset':
+	if args[0] == 'set':
+		ev._VARREF_SYM = args[1]
+	elif args[0] == 'reset':
 		ev._VARREF_SYM = '$'
 	else:
-		print(f'{args[1]} is not a valid argument for this command')
+		print(f'{args[0]} is not a valid argument for this command')
+
+def call_f(args):
+	if (fun := ev.get_from_id(args[0])) == None:
+		raise terr.TuiNotFoundError(args[0])
+	if type(fun) is not al.Function:
+		raise terr.TuiNotCallableError(args[0])
+	fun.execute_fun(args[1:])

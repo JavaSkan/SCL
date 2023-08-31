@@ -19,7 +19,7 @@ def gethead(args: list):
 Char positions in a string
 """
 def cpos(inp: str, c) -> list:
-    return [i for i in range(len(inp)) if inp[i] == c]
+    return [i for i,v in enumerate(inp) if v == c]
 
 def is_not_in_block(inp: str, pos: int, copen: str, cclose: str) -> bool:
     open_positions = cpos(inp, copen)
@@ -73,18 +73,16 @@ def parse_block(inp: str, block_char_open: str, block_char_close: str, binop_cha
 
     if lpos == [] or rpos == []:
         return inp
-    elif len(lpos) > len(rpos):
-        print(f"Missing {block_char_close} after the last one at position {rpos[len(rpos)-1]}")
-        return inp
-    elif len(lpos) < len(rpos):
-        print(f"Missing {block_char_open} before the first one at position {lpos[0]}")
-        return inp
+    elif (lft_pl := len(lpos)) > (rgt_pl := len(rpos)):
+        raise Exception(f"Missing {block_char_close} after the last one at position {rpos[rgt_pl-1]}")
+    elif lft_pl < rgt_pl:
+        raise Exception(f"Missing {block_char_open} before the first one at position {lpos[0]}")
 
     #inp but without delimiters ('{' or '}' for ex)
-    res = parse_binp(inp[lpos[0]+1:rpos[len(rpos)-1]],binop_char,block_char_open,block_char_close)
+    res = parse_binp(inp[lpos[0]+1:rpos[-1]],binop_char,block_char_open,block_char_close)
 
     for i in range(len(res)):
-        #just remove extra spaces in the beginning or at the end
+        #idk why it doesn't work with strip(), that's why i do it manually
         while res[i].startswith(' '):
             res[i] = res[i][1:]
         while res[i].endswith(' '):
@@ -115,14 +113,14 @@ def parse(s:str) -> list:
     lst_close = ''
     res = []
     for i,v in enumerate(s):
-        if v == ' ' or i == len(s)-1:
-            if i == len(s)-1:
+        if v == ' ' or i == (ls := len(s)-1):
+            if i == ls:
                 buf += v
             # if all blocks are closed AND first opening char is matching type of last closing char (ie '(' and ')') OR it's the end of the string
             if openings == 0 and OPENING_CHARS.find(fst_open) == CLOSING_CHARS.find(lst_close)\
                              and OPENING_CHARS.find(fst_open)  != -1\
                              and CLOSING_CHARS.find(lst_close) != -1\
-                             or i==len(s)-1:
+                             or i==ls:
                 res.append(buf)
                 buf = ''
                 fst_open = ''
@@ -150,10 +148,7 @@ def var_ref(id: str) -> str:
 
 
 def is_valid_name(name: str) -> bool:
-    for c in name:
-        if c not in LETTERS:
-            return False
-    return True
+    return name.isidentifier()
 
 def rem_endline(inp: str) -> str:
     out = ""
@@ -165,7 +160,7 @@ def rem_endline(inp: str) -> str:
 def execute(inst):
     try:
         parsed = parse(inst)
-        fl.cmds[gethead(parsed)](parsed)
+        fl.cmds[gethead(parsed)](parsed[1:])
     except KeyError:
         print('Unknown Command')
     except IndexError:

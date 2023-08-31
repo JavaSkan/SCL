@@ -3,7 +3,7 @@ import ulang
 def main():
     script = ""
     while True:
-        script = input(">")
+        script = input("> ")
         ulang.execute(script)
 
 if __name__ == '__main__':

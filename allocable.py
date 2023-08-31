@@ -1,6 +1,9 @@
 import ulang as ul
 import env as ev
-import allocable as al
+import TuiErrors as terr
+
+
+
 #Enums
 COUNT = 0
 
@@ -54,8 +57,7 @@ class Allocable:
         return self.maddr
 
     def alloc(cls, allocable):
-        dup = ev.get_from_id(allocable.id)
-        if dup == None:
+        if (dup := ev.get_from_id(allocable.id)) == None:
             ev._VARS.append(allocable)
             allocable.maddr = ev._VARS.__len__() - 1
         else:
@@ -77,8 +79,6 @@ class Variable(Allocable):
             case 1:
                 return float(self.vl)
             case 2:
-                return self.vl
-            case _:
                 return self.vl
 
     def __repr__(self):
@@ -105,30 +105,42 @@ class Array(Allocable):
 
 class Function(Allocable):
 
-    def __init__(self, id:str,params:list,body:list):
+    def __init__(self, id:str, params:list[str] | None, body:list[str]):
         self.pm = [] if params == None else params
         self.bd = body
-        self.locals = []
+        self.locals: list[Variable] = []
         self.ret = None
         super().__init__(id,self.ret)
 
 
     def __repr__(self):
-        return f"Function:({self.id}:{self.vl})"
+        return f"Function:('{self.id}':{self.vl})"
 
     def init_params(self):
         for p in self.pm:
             temp = ul.parse(p)
-            if len(temp) == 2:
-                self.locals.append(al.Variable(temp[0], temp[1], '0'))
-            elif len(temp) == 3:
-                self.locals.append(al.Variable(temp[0], temp[1], ul.var_ref(temp[2])))
+            if (alen := len(temp)) == 2:
+                self.locals.append(Variable(temp[0], temp[1], '0'))
+            elif alen == 3:
+                self.locals.append(Variable(temp[0], temp[1], ul.var_ref(temp[2])))
+
+    """
+    To set params when the function is called
+    """
+    def set_params(self,arguments: list[str]):
+        if (loc_len := len(self.locals)) != (val_len := len(arguments)):
+            raise terr.TuiFunArgsMismatchError(loc_len, val_len)
+        for i in range(len(self.locals)):
+            self.locals[i].vl = arguments[i]
 
     def del_locals(self):
         for l in self.locals:
             ul.execute(f'del {l.id}')
-    def execute_fun(self):
+
+    def execute_fun(self,arguments: list[str] | None):
         self.init_params()
+        if self.pm != None:
+            self.set_params(arguments)
         for ins in self.bd:
             if type(ins) is str:
                 ul.execute(ins)

@@ -18,5 +18,6 @@ cmds = {"dp":	  display_f,
 		"help":   help_f,
 		"fun":    fun_f,
 		"ret":    ret_f,
-		"vr":  	  vr_f
+		"vr":  	  vr_f,
+		"call":	  call_f
 		}
