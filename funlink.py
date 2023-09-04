@@ -19,5 +19,7 @@ cmds = {"dp":	  display_f,
 		"fun":    fun_f,
 		"ret":    ret_f,
 		"vr":  	  vr_f,
-		"call":	  call_f
+		"call":	  call_f,
+		"enable_eq" : enable_err_quit_f,
+		"disable_eq": disable_err_quit_f
 		}

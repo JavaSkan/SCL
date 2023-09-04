@@ -15,14 +15,14 @@ def display_f(args):
 			res += " " if i != len(args)-1 else " "
 		print(res,end="")
 	except IndexError:
-		print("Args don't match")
+		terr.TuiArgsMismatchError().trigger()
 
 def displayl_f(args):
 	try:
 		display_f(args)
 		print()
 	except IndexError:
-		print("Args don't match")
+		terr.TuiArgsMismatchError().trigger()
 
 
 def loop_f(args):
@@ -37,16 +37,23 @@ def loop_f(args):
 
 def new_f(args):
 	if not ul.is_valid_name(args[1]):
-		raise terr.TuiInvalidNameError(args[0])
-	if args[0] in al.DT_TYPES.TYPES:
-		if args[0] == "str":
-			al.Variable(args[0],args[1],ul.var_ref(" ".join(args[2:])))
-		else:
-			al.Variable(args[0],args[1],ul.var_ref("".join(args[2:])))
-	elif args[0] == "arr":
-		al.Array(args[1],ul.parse_arr(args[2]))
-	else:
-		print(f"Unknown type {args[0]}")
+		terr.TuiInvalidNameError(args[1]).trigger()
+
+	match args[0]:
+		case "str":
+			al.Variable(al.DT_TYPES.STR, args[1], ul.var_ref(" ".join(args[2:])))
+		case "int":
+			if not (str_int_value := ul.var_ref("".join(args[2:]))).isdigit():
+				terr.TuiWrongTypeError("int").trigger()
+			al.Variable(al.DT_TYPES.INT,args[1],int(str_int_value))
+		case "flt":
+			if not (str_int_value := ul.var_ref("".join(args[2:]))).replace('.','',1).isdigit():
+				terr.TuiWrongTypeError("float").trigger()
+			al.Variable(al.DT_TYPES.FLT, args[1], float(str_int_value))
+		case "arr":
+			al.Array(args[1], ul.parse_arr(args[2]))
+		case _:
+			terr.TuiError(f"Unknown type {args[0]}").trigger()
 
 
 def state_f(args):
@@ -54,6 +61,7 @@ def state_f(args):
 	print(f"BOOL_STATE : {ev._BOOL}")
 	print(f"FUNCTION RETURN VALUE : {ev._FUN_RET}")
 	print(f"VARIABLE REFERENCING SYMBOL : {ev._VARREF_SYM}")
+	print(f"ERR_QUIT:{ev._ERR_QUIT}")
 
 def end_f(args):
 	if (alen := len(args)) != 0:
@@ -66,7 +74,7 @@ def end_f(args):
 				if ul.var_ref(args[1]) == "1":
 					print("ended with a failure")
 		else:
-			print("Unknown End Error")
+			terr.TuiError("Unknown End Error Signal").trigger()
 	ev._VARS.clear()
 	quit()
 
@@ -88,66 +96,174 @@ def execute_f(args):
 				for line in lines:
 					ul.execute(line)
 		else:
-			print("Incorrect file extension")
+			terr.TuiError("Incorrect file extension").trigger()
 	else:
-		print("There is not such file")
+		terr.TuiError("There is not such file").trigger()
 
 def add_f(args):
-	var = ev.get_from_id(args[0])
-	try:
-		match al.DT_TYPES.TYPES[var.type]:
-			case al.DT_TYPES.INT:
-				var.vl = str(var.get_value() + int(ul.var_ref(args[1])))
-			case al.DT_TYPES.FLT:
-				var.vl = str(var.get_value() + float(ul.var_ref(args[1])))
-			case _:
-				print("The variable type is not a number")
-	except ValueError:
-		print("Types are mismatching")
+	if (var := ev.get_from_id(args[0])) == None:
+		terr.TuiNotFoundError(args[0]).trigger()
+	added = ev.get_from_id(args[1][1:]) if ul.is_var_ref(args[1]) else args[1]
+	if type(var) is al.Array:
+		var.add_v(added)
+		return
+	match var.type:
+		case al.DT_TYPES.INT:
+			if type(added) is al.Variable:
+				if added.type is al.DT_TYPES.INT:
+					var.vl = var.get_value() + added.get_value()
+				else:
+					terr.TuiWrongTypeError("int", added.type.to_python_type().__class__.__name__).trigger()
+			else:
+				if added.isdigit():
+					var.vl = var.get_value() + int(added)
+				else:
+					terr.TuiWrongTypeError("int").trigger()
+		case al.DT_TYPES.FLT:
+			if type(added) is al.Variable:
+				if added.isdigit() or added.replace('.', '', 1).isdigit():
+					var.vl = var.get_value() + float(added.get_value())
+				else:
+					terr.TuiWrongTypeError("flt",added.type.to_python_type().__class__.__name__).trigger()
+			else:
+				if added.isdigit() or added.replace('.', '', 1).isdigit():
+					var.vl = var.get_value() + float(added)
+				else:
+					terr.TuiWrongTypeError("flt").trigger()
+		case al.DT_TYPES.STR:
+			if type(added) is al.Variable:
+				var.vl = var.get_value() + str(added.get_value())
+			else:
+				var.vl = var.get_value() + added
+
 
 def sub_f(args):
-	var = ev.get_from_id(args[0])
-	if al.DT_TYPES.TYPES[var.type] in al.DT_TYPES.NUMBERS:
-		match al.DT_TYPES.TYPES[var.type]:
-			case al.DT_TYPES.INT:
-				var.vl = str(var.get_value() - int(ul.var_ref(args[1])))
-			case al.DT_TYPES.FLT:
-				var.vl = str(var.get_value() - float(ul.var_ref(args[1])))
-	else:
-		print("The variable type is not a number")
+	if (var := ev.get_from_id(args[0])) == None:
+		terr.TuiNotFoundError(args[0]).trigger()
+	added = ev.get_from_id(args[1][1:]) if ul.is_var_ref(args[1]) else args[1]
+	if type(var) is al.Array:
+		terr.TuiWrongOperationError("subtraction","array")
+	match var.type:
+		case al.DT_TYPES.INT:
+			if type(added) is al.Variable:
+				if added.type is al.DT_TYPES.INT:
+					var.vl = var.get_value() - added.get_value()
+				else:
+					terr.TuiWrongTypeError("int", added.type.to_python_type().__class__.__name__).trigger()
+			else:
+				if added.isdigit():
+					var.vl = var.get_value() - int(added)
+				else:
+					terr.TuiWrongTypeError("int").trigger()
+		case al.DT_TYPES.FLT:
+			if type(added) is al.Variable:
+				if added.isdigit() or added.replace('.', '', 1).isdigit():
+					var.vl = var.get_value() - float(added.get_value())
+				else:
+					terr.TuiWrongTypeError("flt", added.type.to_python_type().__class__.__name__).trigger()
+			else:
+				if added.isdigit() or added.replace('.', '', 1).isdigit():
+					var.vl = var.get_value() - float(added)
+				else:
+					terr.TuiWrongTypeError("flt").trigger()
+		case al.DT_TYPES.STR:
+			terr.TuiWrongOperationError("subtraction","str")
 
 def mul_f(args):
-	var = ev.get_from_id(args[0])
-	if al.DT_TYPES.TYPES[var.type] in al.DT_TYPES.NUMBERS:
-		match al.DT_TYPES.TYPES[var.type]:
-			case al.DT_TYPES.INT:
-				var.vl = str(var.get_value() * int(ul.var_ref(args[1])))
-			case al.DT_TYPES.FLT:
-				var.vl = str(var.get_value() * float(ul.var_ref(args[1])))
-	else:
-		print("The variable type is not a number")
+	if (var := ev.get_from_id(args[0])) == None:
+		terr.TuiNotFoundError(args[0]).trigger()
+	added = ev.get_from_id(args[1][1:]) if ul.is_var_ref(args[1]) else args[1]
+	if type(var) is al.Array:
+		terr.TuiWrongOperationError("multiplication", "array")
+	match var.type:
+		case al.DT_TYPES.INT:
+			if type(added) is al.Variable:
+				if added.type is al.DT_TYPES.INT:
+					var.vl = var.get_value() * added.get_value()
+				else:
+					terr.TuiWrongTypeError("int", added.type.to_python_type().__class__.__name__).trigger()
+			else:
+				if added.isdigit():
+					var.vl = var.get_value() * int(added)
+				else:
+					terr.TuiWrongTypeError("int").trigger()
+		case al.DT_TYPES.FLT:
+			if type(added) is al.Variable:
+				if added.isdigit() or added.replace('.', '', 1).isdigit():
+					var.vl = var.get_value() * float(added.get_value())
+				else:
+					terr.TuiWrongTypeError("flt", added.type.to_python_type().__class__.__name__).trigger()
+			else:
+				if added.isdigit() or added.replace('.', '', 1).isdigit():
+					var.vl = var.get_value() * float(added)
+				else:
+					terr.TuiWrongTypeError("flt").trigger()
+		case al.DT_TYPES.STR:
+			terr.TuiWrongOperationError("multiplication", "str")
 
 def div_f(args):
-	var = ev.get_from_id(args[0])
-	if al.DT_TYPES.TYPES[var.type] in al.DT_TYPES.NUMBERS:
-		match al.DT_TYPES.TYPES[var.type]:
-			case al.DT_TYPES.INT:
-				var.vl = str(var.get_value() / int(ul.var_ref(args[1])))
-			case al.DT_TYPES.FLT:
-				var.vl = str(var.get_value() / float(ul.var_ref(args[1])))
-	else:
-		print("The variable type is not a number")
+	if (var := ev.get_from_id(args[0])) == None:
+		terr.TuiNotFoundError(args[0]).trigger()
+	added = ev.get_from_id(args[1][1:]) if ul.is_var_ref(args[1]) else args[1]
+	if type(var) is al.Array:
+		terr.TuiWrongOperationError("division", "array")
+	match var.type:
+		case al.DT_TYPES.INT:
+			if type(added) is al.Variable:
+				if added.type is al.DT_TYPES.INT:
+					var.vl = int(var.get_value() / added.get_value())
+				else:
+					terr.TuiWrongTypeError("int", added.type.to_python_type().__class__.__name__).trigger()
+			else:
+				if added.isdigit():
+					var.vl = int(var.get_value() / int(added))
+				else:
+					terr.TuiWrongTypeError("int").trigger()
+		case al.DT_TYPES.FLT:
+			if type(added) is al.Variable:
+				if added.isdigit() or added.replace('.', '', 1).isdigit():
+					var.vl = var.get_value() / float(added.get_value())
+				else:
+					terr.TuiWrongTypeError("flt", added.type.to_python_type().__class__.__name__).trigger()
+			else:
+				if added.isdigit() or added.replace('.', '', 1).isdigit():
+					var.vl = var.get_value() / float(added)
+				else:
+					terr.TuiWrongTypeError("flt").trigger()
+		case al.DT_TYPES.STR:
+			terr.TuiWrongOperationError("division", "str")
 
 def pow_f(args):
-	var = ev.get_from_id(args[0])
-	if al.DT_TYPES.TYPES[var.type] in al.DT_TYPES.NUMBERS:
-		match al.DT_TYPES.TYPES[var.type]:
-			case al.DT_TYPES.INT:
-				var.vl = str(var.get_value() ** int(ul.var_ref(args[1])))
-			case al.DT_TYPES.FLT:
-				var.vl = str(var.get_value() ** float(ul.var_ref(args[1])))
-	else:
-		print("The variable type is not a number")
+	if (var := ev.get_from_id(args[0])) == None:
+		terr.TuiNotFoundError(args[0]).trigger()
+	added = ev.get_from_id(args[1][1:]) if ul.is_var_ref(args[1]) else args[1]
+	if type(var) is al.Array:
+		terr.TuiWrongOperationError("power", "array")
+	match var.type:
+		case al.DT_TYPES.INT:
+			if type(added) is al.Variable:
+				if added.type is al.DT_TYPES.INT:
+					var.vl = var.get_value() ** added.get_value()
+				else:
+					terr.TuiWrongTypeError("int", added.type.to_python_type().__class__.__name__).trigger()
+			else:
+				if added.isdigit():
+					var.vl = var.get_value() ** int(added)
+				else:
+					terr.TuiWrongTypeError("int").trigger()
+		case al.DT_TYPES.FLT:
+			if type(added) is al.Variable:
+				if added.isdigit() or added.replace('.', '', 1).isdigit():
+					var.vl = var.get_value() ** float(added.get_value())
+				else:
+					terr.TuiWrongTypeError("flt", added.type.to_python_type().__class__.__name__).trigger()
+			else:
+				if added.isdigit() or added.replace('.', '', 1).isdigit():
+					var.vl = var.get_value() ** float(added)
+				else:
+					terr.TuiWrongTypeError("flt").trigger()
+		case al.DT_TYPES.STR:
+			terr.TuiWrongOperationError("power", "str")
 
 def help_f(args):
 	match args[0]:
@@ -183,14 +299,18 @@ def help_f(args):
 			print(manuals.VR)
 		case 'call':
 			print(manuals.CALL)
+		case 'enable_eq':
+			print(manuals.ENABLE_EQ)
+		case 'disable_eq':
+			print(manuals.DISABLE_EQ)
 		case 'list':
-			print("dp, dpl, loop, new, set, stt, end, clr, del, exec, add, sub, mu, div, pow, help, fun, ret, vr, call")
+			print("dp, dpl, loop, new, set, stt, end, clr, del, exec, add, sub, mu, div, pow, help, fun, ret, vr, call","enable_eq","disable_eq")
 		case _:
-			print("Unknown Command, either it does not exist or there is no manual for it")
+			terr.TuiError("Unknown Command, either it does not exist or there is no manual for it").trigger()
 
 def fun_f(args):
 	if not ul.is_valid_name(args[0]):
-		raise terr.TuiInvalidNameError(args[0])
+		terr.TuiInvalidNameError(args[0]).trigger()
 
 	#fun <name> {body}
 	if (alen := len(args)) == 2:
@@ -208,11 +328,18 @@ def vr_f(args):
 	elif args[0] == 'reset':
 		ev._VARREF_SYM = '$'
 	else:
-		print(f'{args[0]} is not a valid argument for this command')
+		terr.TuiError(f'{args[0]} is not a valid argument for this command').trigger()
 
 def call_f(args):
 	if (fun := ev.get_from_id(args[0])) == None:
-		raise terr.TuiNotFoundError(args[0])
+		terr.TuiNotFoundError(args[0]).trigger()
 	if type(fun) is not al.Function:
-		raise terr.TuiNotCallableError(args[0])
+		terr.TuiNotCallableError(args[0]).trigger()
 	fun.execute_fun(args[1:])
+
+#TODO consider merging these two commands below
+def enable_err_quit_f(args):
+	ev._ERR_QUIT = True
+
+def disable_err_quit_f(args):
+	ev._ERR_QUIT = False

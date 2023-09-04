@@ -1,5 +1,6 @@
 import string
 
+import TuiErrors
 import env
 import funlink as fl
 import env as ev
@@ -14,6 +15,8 @@ def gethead(args: list):
         return args[0]
     except IndexError:
         return ""
+
+#TODO update parsing system, with adding generation of tokens (ex:[type:BLOCK,content:['command 1','command2']])
 
 """
 Char positions in a string
@@ -139,32 +142,26 @@ def parse(s:str) -> list:
             buf += v
     return res
 
+def is_var_ref(id:str) -> bool:
+    return id.startswith(ev._VARREF_SYM) and len(id) > 1
+
+#TODO consider updating var_ref(), make it return the actual value, not as a string, and replacing function calls by 'str(var_ref(...))'
 def var_ref(id: str) -> str:
-    if id.startswith(ev._VARREF_SYM):
-        if len(id) > 1:
-            return str(env.get_value_from_id(id[1:]))
+    if is_var_ref(id):
+        return str(env.get_value_from_id(id[1:]))
     return id
-
-
 
 def is_valid_name(name: str) -> bool:
     return name.isidentifier()
-
-def rem_endline(inp: str) -> str:
-    out = ""
-    for c in inp:
-        if c != '\n':
-            out += c
-    return out
 
 def execute(inst):
     try:
         parsed = parse(inst)
         fl.cmds[gethead(parsed)](parsed[1:])
     except KeyError:
-        print('Unknown Command')
+        TuiErrors.TuiError('Unknown Command').trigger()
     except IndexError:
-        print('Args don\'t match')
+        TuiErrors.TuiError('Args don\'t match').trigger()
 
 def execute_block(block: list):
     for ins in block:

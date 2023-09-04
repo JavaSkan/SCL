@@ -1,50 +1,31 @@
+from enum import Enum, auto
+
 import ulang as ul
 import env as ev
 import TuiErrors as terr
 
-
+#TODO create bool type and implement boolean system
 
 #Enums
 COUNT = 0
 
-def iota():
-    global COUNT
-    COUNT += 1
-    return COUNT
+class DT_TYPES(Enum):
 
-def iota_limit():
-    global COUNT
-    COUNT = -1
+    INT = auto()
+    FLT = auto()
+    STR = auto()
 
-class DT_TYPES:
+    def __repr__(self):
+        return self.name
 
-    iota_limit()
-    INT = iota()
-    FLT = iota()
-    STR = iota()
-    iota_limit()
-
-
-    TYPES = {
-        "int":INT,
-        "flt":FLT,
-        "str":STR
-    }
-
-    NUMBERS = [
-        INT,
-        FLT
-    ]
-
-    def repr(cls,dtt):
-         match cls.TYPES[dtt]:
-             case 0:
-                 return "integer"
-             case 1:
-                 return "float"
-             case 2:
-                 return "string"
-
+    def to_python_type(self):
+        match self:
+            case DT_TYPES.INT:
+                return int()
+            case DT_TYPES.FLT:
+                return float()
+            case DT_TYPES.STR:
+                return str()
 class Allocable:
 
     def __init__(self, id:str, value):
@@ -68,25 +49,19 @@ class Allocable:
 
 class Variable(Allocable):
 
-    def __init__(self, type:str, id:str, value:str):
+    def __init__(self, type:DT_TYPES, id:str, value):
         self.type = type
         super().__init__(id, value)
 
     def get_value(self):
-        match DT_TYPES.TYPES.get(self.type):
-            case 0:
-                return int(self.vl)
-            case 1:
-                return float(self.vl)
-            case 2:
-                return self.vl
+        return self.vl
 
     def __repr__(self):
-        return f"Var:({self.id}<{DT_TYPES.repr(DT_TYPES,self.type)}>:{self.vl})"
+        return f"Var<{self.type.__repr__()}>({self.id}:{self.vl})"
 
 class Array(Allocable):
 
-    def __init__(self, id:str, vars: list[Variable]):
+    def __init__(self, id:str, vars: list):
         super().__init__(id, vars)
         self.len = len(vars)
 
@@ -100,6 +75,10 @@ class Array(Allocable):
     def get_v(self,idx):
         return self.vl[idx]
 
+    def add_v(self,var:Variable):
+        self.vl.append(var)
+
+    #TODO find a way to use this function
     def rem_v(self,idx):
         return self.vl.pop(idx)
 
@@ -129,9 +108,13 @@ class Function(Allocable):
     """
     def set_params(self,arguments: list[str]):
         if (loc_len := len(self.locals)) != (val_len := len(arguments)):
-            raise terr.TuiFunArgsMismatchError(loc_len, val_len)
+            terr.TuiFunArgsMismatchError(loc_len, val_len).trigger()
         for i in range(len(self.locals)):
-            self.locals[i].vl = arguments[i]
+            if arguments[i].startswith('$') and len(arguments[i]) > 1:
+                if (arg_var := ev.get_from_id(arguments[i])) != None:
+                    # TODO Fix Detecting type mismatch error when calling a function
+                    pass
+            self.locals[i].vl = ul.var_ref(arguments[i])
 
     def del_locals(self):
         for l in self.locals:

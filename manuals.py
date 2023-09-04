@@ -76,3 +76,11 @@ CALL    = '>>> Calls a function\n' + \
           'Syntax: call <name> [argument(s)]\n' + \
           'NOTE:\n' + \
           ' -compatible with variable referencing (at [argument(s)])\n'
+
+ENABLE_EQ = '>>> Enables Error Quitting\n' + \
+            'Error Quitting: Program Ends when an error is triggered\n' + \
+            'Syntax: enable_eq'
+
+DISABLE_EQ = '>>> Disables Error Quitting\n' + \
+             'Error Quitting: Program Ends when an error is triggered\n' + \
+             'Syntax: disable_eq'
