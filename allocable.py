@@ -16,7 +16,7 @@ class DT_TYPES(Enum):
     STR = auto()
 
     def __repr__(self):
-        return self.name
+        return self.to_python_type().__class__.__name__
 
     def to_python_type(self):
         match self:
@@ -55,6 +55,28 @@ class Variable(Allocable):
 
     def get_value(self):
         return self.vl
+
+    def set_value(self,new):
+        self.vl = new
+
+    def is_compatible_with_type(self,str_value:str) -> bool:
+        match self.type:
+            case DT_TYPES.INT:
+                return str_value.isdigit()
+            case DT_TYPES.FLT:
+                return str_value.replace('.','',1).isdigit()
+            case DT_TYPES.STR:
+                return True
+
+    def convert_str_value_to_type(self,str_value:str):
+        match self.type:
+            case DT_TYPES.INT:
+                return int(str_value)
+            case DT_TYPES.FLT:
+                return float(str_value)
+            case DT_TYPES.STR:
+                return str_value
+
 
     def __repr__(self):
         return f"Var<{self.type.__repr__()}>({self.id}:{self.vl})"

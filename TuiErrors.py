@@ -80,3 +80,12 @@ class TuiWrongOperationError(TuiError):
     def __init__(self,operation:str,type:str):
         self.msg = f"Type '{type}' does not support this operation ({operation})"
         super().__init__(self.msg)
+
+class TuiDivisionByZeroError(TuiError):
+
+    """
+    Raised when attempting to divide by zero
+    """
+
+    def __init__(self,var_id:str):
+        super().__init__(f"Cannot divide '{var_id}' by zero")
