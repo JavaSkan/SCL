@@ -26,6 +26,15 @@ class DT_TYPES(Enum):
                 return float()
             case DT_TYPES.STR:
                 return str()
+
+    def str_to_type(str_type: str):
+        match str_type:
+            case 'int':
+                return DT_TYPES.INT
+            case 'flt':
+                return DT_TYPES.FLT
+            case 'str':
+                return DT_TYPES.STR
 class Allocable:
 
     def __init__(self, id:str, value):
@@ -121,9 +130,9 @@ class Function(Allocable):
         for p in self.pm:
             temp = ul.parse(p)
             if (alen := len(temp)) == 2:
-                self.locals.append(Variable(temp[0], temp[1], '0'))
+                self.locals.append(Variable(DT_TYPES.str_to_type(temp[0]), temp[1], None))
             elif alen == 3:
-                self.locals.append(Variable(temp[0], temp[1], ul.var_ref(temp[2])))
+                self.locals.append(Variable(DT_TYPES.str_to_type(temp[0]), temp[1], ul.var_ref(temp[2])))
 
     """
     To set params when the function is called
@@ -132,11 +141,18 @@ class Function(Allocable):
         if (loc_len := len(self.locals)) != (val_len := len(arguments)):
             terr.TuiFunArgsMismatchError(loc_len, val_len).trigger()
         for i in range(len(self.locals)):
-            if arguments[i].startswith('$') and len(arguments[i]) > 1:
-                if (arg_var := ev.get_from_id(arguments[i])) != None:
-                    # TODO Fix Detecting type mismatch error when calling a function
-                    pass
-            self.locals[i].vl = ul.var_ref(arguments[i])
+            if (arg_var := (ev.get_from_id(arguments[i][1:]) if ul.is_var_ref(arguments[i]) else arguments[i])) == None:
+                terr.TuiNotFoundError(arguments[i]).trigger()
+            if type(arg_var) is str:
+                if self.locals[i].is_compatible_with_type(arg_var):
+                    self.locals[i].set_value(self.locals[i].convert_str_value_to_type(arg_var))
+                else:
+                    terr.TuiWrongTypeError(self.locals[i].type.__repr__()).trigger()
+            else:
+                if self.locals[i].is_compatible_with_type(str(arg_var.get_value())):
+                    self.locals[i].set_value(arg_var.get_value())
+                else:
+                    terr.TuiWrongTypeError(self.locals[i].type.__repr__(),arg_var.type.__repr__()).trigger()
 
     def del_locals(self):
         for l in self.locals:

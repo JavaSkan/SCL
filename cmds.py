@@ -316,7 +316,6 @@ def call_f(args):
 		terr.TuiNotCallableError(args[0]).trigger()
 	fun.execute_fun(args[1:])
 
-#TODO consider merging these two commands below
 def enable_err_quit_f(args):
 	ev._ERR_QUIT = True
 
