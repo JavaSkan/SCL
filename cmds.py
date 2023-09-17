@@ -282,8 +282,10 @@ def help_f(args):
 			print(manuals.ENABLE_EQ)
 		case 'disable_eq':
 			print(manuals.DISABLE_EQ)
+		case 'read':
+			print(manuals.READ)
 		case 'list':
-			print("dp, dpl, loop, new, set, stt, end, clr, del, exec, add, sub, mu, div, pow, help, fun, ret, vr, call","enable_eq","disable_eq")
+			print("dp, dpl, loop, new, set, stt, end, clr, del, exec, add, sub, mu, div, pow, help, fun, ret, vr, call, enable_eq, disable_eq, read")
 		case _:
 			terr.TuiError("Unknown Command, either it does not exist or there is no manual for it").trigger()
 
@@ -321,3 +323,12 @@ def enable_err_quit_f(args):
 
 def disable_err_quit_f(args):
 	ev._ERR_QUIT = False
+
+def read_f(args):
+	if (var := ev.get_from_id(args[0])) == None:
+		terr.TuiNotFoundError(args[0]).trigger()
+	user_input = input("")
+	if var.is_compatible_with_type(user_input):
+		var.set_value(var.convert_str_value_to_type(user_input))
+	else:
+		terr.TuiWrongTypeError(var.type.__repr__()).trigger()

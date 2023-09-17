@@ -84,3 +84,7 @@ ENABLE_EQ = '>>> Enables Error Quitting\n' + \
 DISABLE_EQ = '>>> Disables Error Quitting\n' + \
              'Error Quitting: Program Ends when an error is triggered\n' + \
              'Syntax: disable_eq'
+
+READ    = '>>> Reads input from the user\n' + \
+          'Syntax: read <destination>\n' + \
+          'Where <destination> is the name of the variable in which the input will be stored'
