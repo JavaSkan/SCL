@@ -10,7 +10,7 @@ def display_f(args):
 		res = ""
 		add = ""
 		for i,arg in enumerate(args):
-			add = ul.var_ref(arg)
+			add = ul.var_ref(arg.value)
 			res += add
 			res += " " if i != len(args)-1 else " "
 		print(res,end="")

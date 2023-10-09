@@ -1,4 +1,5 @@
 import string
+from enum import Enum, auto
 
 import TuiErrors
 import env
@@ -7,8 +8,25 @@ import env as ev
 
 LETTERS = string.ascii_letters
 
-OPENING_CHARS = '{[('
-CLOSING_CHARS = '}])'
+OPENING_CHARS = '{[("'
+CLOSING_CHARS = '}])"'
+
+class TokenType(Enum):
+    ARG  =  auto()
+    BODY = auto()
+    PARAM = auto()
+    ARRAY = auto()
+    STR   = auto()
+
+    def __repr__(self):
+        return self.name
+class ParseToken:
+    def __init__(self,type: TokenType,value: str | list[str]):
+        self.type = type
+        self.value = value
+
+    def __repr__(self):
+        return f"ParseToken:(type:'{self.type.__repr__()}';value:{self.value})"
 
 def gethead(args: list):
     try:
@@ -48,7 +66,7 @@ def parse_binp(inp: str, c: str, copen: str, cclose: str) -> list:
 
     #if there is no <copen> or <cclose> or delimiter characters are not matching then it returns the whole split string
     if (lposs == [] or rposs == []) or len(lposs) != len(rposs):
-        return inp.split(c)
+        return inp.split(c) if c != "" else [inp]
 
     lpos = lposs[0]
     rpos = rposs[-1]
@@ -70,6 +88,7 @@ Parses a delimited chunk in the script (inp)
 <block_char_closing>: closing delimiter
 <binop_char>: to parse what's in the block
 """
+#TODO Replace raising exceptions with TuiErrors + replacing message by 'one extra closing/opening character' at pos <pos>
 def parse_block(inp: str, block_char_open: str, block_char_close: str, binop_char: str):
     lpos = cpos(inp,block_char_open)
     rpos = cpos(inp,block_char_close)
@@ -94,14 +113,31 @@ def parse_block(inp: str, block_char_open: str, block_char_close: str, binop_cha
             res[i] = parse_block(res[i],block_char_open,block_char_close,binop_char)
     return res
 
-def parse_body(inp: str) -> list:
-    return parse_block(inp,'{','}',';')
+def parse_body(inp: str) -> ParseToken:
+    return ParseToken(TokenType.BODY,parse_block(inp,'{','}',';'))
 
-def parse_arr(inp):
-    return parse_block(inp,'[',']',',')
+def parse_arr(inp) -> ParseToken:
+    return ParseToken(TokenType.ARRAY,parse_block(inp,'[',']',','))
 
-def parse_params(inp):
-    return parse_block(inp,'(',')',',')
+def parse_params(inp) -> ParseToken:
+    return ParseToken(TokenType.PARAM,parse_block(inp,'(',')',','))
+
+"""
+=> Parses The First String Literal Expression It Finds In The Input String
+
+! Effective string parameter must start at the location of the first (")
+for example: 
+start_string = 'string s = "Hello World"'
+s (parameter) = '"Hello World"'
+
+! Returns a tuple containing the parsed string AND a int value which is the end of the string
+literal expression, which is the character (")
+"""
+def parse_str_literal(s:str) -> (ParseToken,int):
+    closing_char_pos = s[1:].find('"')
+    if closing_char_pos != -1:
+        return ParseToken(TokenType.STR,s[1:closing_char_pos+1]),closing_char_pos
+    TuiErrors.TuiError(f"Syntax Error: forgot to close string literal expression in '{s}'").trigger()
 
 """
 I know I know, this is messy and it hurts eyes
@@ -169,3 +205,55 @@ def execute_block(block: list):
             execute(ins)
         elif type(ins) is list:
             execute_block(ins)
+
+def parse_tokens(s:str) -> list[ParseToken]:
+    buf = ''
+    openings = 0
+    fst_open = ''
+    lst_close = ''
+    goto_index = 0 #used when forming strings
+    res = []
+    for i, v in enumerate(s):
+        if i < goto_index:
+            continue #To skip characters included in string
+        if v == ' ' or i == (ls := len(s) - 1):
+            if i == ls:
+                buf += v
+            if goto_index != 0:
+                goto_index = 0
+                buf = ''
+                continue
+            # if all blocks are closed AND first opening char is matching type of last closing char (ie '(' and ')') AND they're both not empty strings OR it's the end of the string
+            if (openings == 0 and OPENING_CHARS.find(fst_open) == CLOSING_CHARS.find(lst_close)
+                    and OPENING_CHARS.find(fst_open) != -1 and CLOSING_CHARS.find(lst_close) != -1) \
+                    and len(fst_open) != 0 and len(lst_close) != 0 \
+                    or i == ls:
+                #res.append(buf)
+                if buf.startswith("{") and buf.endswith("}"):
+                    res.append(parse_body(buf))
+                elif buf.startswith("(") and buf.endswith(")"):
+                    res.append(parse_params(buf))
+                elif buf.startswith("[") and buf.endswith("]"):
+                    res.append(parse_arr(buf))
+                fst_open = ''
+                lst_close = ''
+                openings = 0
+            else:
+                res.append(ParseToken(TokenType.ARG, buf))
+            buf = ''
+        elif v == '"':
+            token,goto_index = parse_str_literal(s[i:])
+            goto_index += i+2
+            res.append(token)
+        elif v in OPENING_CHARS:
+            if fst_open == '':
+                fst_open = v
+            openings += 1
+            buf += v
+        elif v in CLOSING_CHARS:
+            lst_close = v
+            openings -= 1
+            buf += v
+        elif v != ' ' or openings > 0:
+            buf += v
+    return res
