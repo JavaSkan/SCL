@@ -4,8 +4,9 @@ import allocable as al
 import env as ev
 import manuals
 import TuiErrors as terr
+import tuiparsing as p
 
-def display_f(args):
+def display_f(args: list[p.ParseToken]):
 	try:
 		res = ""
 		add = ""
