@@ -235,6 +235,8 @@ def parse_tokens(s:str) -> list[ParseToken]:
                     res.append(parse_params(buf))
                 elif buf.startswith("[") and buf.endswith("]"):
                     res.append(parse_arr(buf))
+                else:
+                    res.append(ParseToken(TokenType.ARG, buf))
                 fst_open = ''
                 lst_close = ''
                 openings = 0
