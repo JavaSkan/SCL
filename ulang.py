@@ -1,4 +1,4 @@
-import TuiErrors
+import tuierrors
 import env
 import funlink as fl
 import tuiparsing
@@ -27,9 +27,9 @@ def execute(inst):
         parsed = tuiparsing.parse_tokens(inst)
         fl.cmds[gethead(parsed)](parsed[1:])
     except KeyError:
-        TuiErrors.TuiError('Unknown Command').trigger()
+        tuierrors.TuiError('Unknown Command').trigger()
     except IndexError:
-        TuiErrors.TuiError('Args don\'t match').trigger()
+        tuierrors.TuiError('Args don\'t match').trigger()
 
 def execute_block(block: list):
     for ins in block:

@@ -2,7 +2,7 @@ from enum import Enum, auto
 
 import ulang as ul
 import env as ev
-import TuiErrors as terr
+import tuierrors as terr
 
 #TODO create bool type and implement boolean system
 

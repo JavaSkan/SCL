@@ -3,10 +3,11 @@ import ulang as ul
 import allocable as al
 import env as ev
 import manuals
-import TuiErrors as terr
-import tuiparsing as p
+import tuierrors as terr
+import tuiparsing as tp
 
-def display_f(args: list[p.ParseToken]):
+
+def display_f(args):
 	try:
 		res = ""
 		add = ""

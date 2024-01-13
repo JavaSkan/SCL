@@ -1,5 +1,5 @@
+import tuierrors as terr
 import allocable as al
-import TuiErrors as terr
 
 _VARS = []            #variables
 _BOOL = False         #boolean result

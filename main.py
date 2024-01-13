@@ -1,4 +1,6 @@
-import ulang, env
+import env
+import ulang
+
 
 def main():
     env._ERR_QUIT = False

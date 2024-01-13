@@ -1,8 +1,6 @@
 from enum import Enum, auto
 import re
 
-#import TuiErrors
-
 #OVERALL_PATTERN = re.compile(r"(?P<args>(?:[a-z]+ ?)+) ?(?:\((?P<param_content>.*)\))? *(?:\{(?P<body_content>.*)\})?$")
 BODY_PATTERN = re.compile(r"\{(?P<body_content>(?:.|\s)*)}")
 PARAM_PATTERN = re.compile(r"\((?P<param_content>(?:.|\s)*)\)")
@@ -30,12 +28,11 @@ class ParseToken:
         return f"ParseToken:(type:'{self.type.__repr__()}';value:{self.value})"
 
 # def try_get(tokentype:TokenType,position:int,args:list[ParseToken]):
+#     import tuierrors #avoid circular import
 #     if position >= len(args):
-#         TuiErrors.TuiError(f"SyntaxError: There is no argument at {position} (command arguments length = {len(args)})").trigger()
-#         return # In case ERR_QUIT is set to false
+#         return tuierrors.TuiError(f"SyntaxError: There is no argument at {position} (command arguments length = {len(args)})").trigger()
 #     if (wanted_token := args[position]).type != tokentype:
-#         TuiErrors.TuiError(f"SyntaxError: wanted {tokentype.__repr__()} at {position} and found {args[position].type.__repr__()}").trigger()
-#         return # In case ERR_QUIT is set to false
+#         return tuierrors.TuiError(f"SyntaxError: expected {tokentype.__repr__()} at {position} and found {args[position].type.__repr__()}").trigger()
 #     else:
 #         return wanted_token
 
