@@ -1,16 +1,29 @@
-import env
-
 class TuiError:
 
-    def __init__(self,msg):
+    def __init__(self,msg:str):
         self.err_msg = msg
 
-    def trigger(self):
-        print(f"\033[0;31mERROR: {self.err_msg}\033[0m")
-        if env._ERR_QUIT:
-            quit()
+    def trigger(self,line="",note=""):
+        print("\033[0;31m",end="")
+        if line != "":
+            print(f'line: "{line}"')
+        print(f"ERROR: {self.err_msg}")
+        if note != "":
+            print(f"NOTE:{note}")
+        print("\033[0m",end="")
+        quit()
+        # if env._ERR_QUIT:
+        #     quit()
 
-#TODO create a TuiUnknownCommand error
+class TuiUnknownCommand(TuiError):
+    """
+    comm: the command
+    Raised when an unknown command is given
+    """
+    def __init__(self,comm):
+        self.msg = "Unknown Command"
+        super().__init__(self.msg)
+
 class TuiArgsMismatchError(TuiError):
     """
     Raised when arguments are mismatching during a command call
@@ -26,14 +39,14 @@ class TuiFunArgsMismatchError(TuiError):
     Raised when there is an argument mismatch using functions
     """
     def __init__(self,nan:int,nap:int) -> None:
-        self.msg = "Arguments don't match: " + (f"provided {nap - nan} extra argument(s)" if nap > nan \
+        self.msg = "Arguments don't match: " + (f"provided {nap - nan} extra argument(s)" if nap > nan
                                                   else
                                               f"missing {nan - nap} arguments")
         super().__init__(self.msg)
 
 class TuiNotFoundError(TuiError):
     """
-    id: id of the variable
+    id: id of the allocable
     Raised when trying to interact with a variable that isn't existing
     """
     def __init__(self,id:str) -> None:

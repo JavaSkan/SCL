@@ -1,24 +1,45 @@
 from enum import Enum, auto
 import re
+import tuierrors
 
-#OVERALL_PATTERN = re.compile(r"(?P<args>(?:[a-z]+ ?)+) ?(?:\((?P<param_content>.*)\))? *(?:\{(?P<body_content>.*)\})?$")
 BODY_PATTERN = re.compile(r"\{(?P<body_content>(?:.|\s)*)}")
 PARAM_PATTERN = re.compile(r"\((?P<param_content>(?:.|\s)*)\)")
 ARR_PATTERN = re.compile(r"\[(?P<arr_content>(?:.|\s)*)]")
 STR_PATTERN = re.compile(r'<(?P<str_content>(?:.|\s)*)>')
 
-class TokenType(Enum):
-    ARG   = auto()
-    BODY  = auto()
-    PARAM = auto()
-    ARRAY = auto()
-    STR   = auto()
-    INT   = auto()
-    FLT   = auto()
-    UNK   = -1
 
-    def __repr__(self):
-        return self.name
+class TokenType(Enum):
+    ARG      = auto()
+    BODY     = auto()
+    PARAM    = auto()
+    ARRAY    = auto()
+    STRLIT   = auto()
+    INTLIT   = auto()
+    FLTLIT   = auto()
+    VARREF   = auto()
+    UNK      = -1
+
+    def __repr__(self) -> str:
+        match self.name:
+            case 'ARG':
+                return 'argument'
+            case 'BODY':
+                return 'body literal'
+            case 'PARAM':
+                return 'parameters literal'
+            case 'ARRAY':
+                return 'array literal'
+            case 'STRLIT':
+                return 'string'
+            case 'INTLIT':
+                return 'integer literal'
+            case 'FLTLIT':
+                return 'float literal'
+            case 'VARREF':
+                return 'variable reference'
+            case 'UNK':
+                return 'unknown token'
+
 class ParseToken:
     def __init__(self,type: TokenType,value: str | list[str]):
         self.type = type
@@ -27,14 +48,24 @@ class ParseToken:
     def __repr__(self):
         return f"ParseToken:(type:'{self.type.__repr__()}';value:{self.value})"
 
-# def try_get(tokentype:TokenType,position:int,args:list[ParseToken]):
-#     import tuierrors #avoid circular import
-#     if position >= len(args):
-#         return tuierrors.TuiError(f"SyntaxError: There is no argument at {position} (command arguments length = {len(args)})").trigger()
-#     if (wanted_token := args[position]).type != tokentype:
-#         return tuierrors.TuiError(f"SyntaxError: expected {tokentype.__repr__()} at {position} and found {args[position].type.__repr__()}").trigger()
-#     else:
-#         return wanted_token
+def try_get(tokentypes:list[TokenType],position:int,args:list[ParseToken]) -> (ParseToken|None,tuierrors.TuiError):
+    #import tuierrors  # avoid circular import
+    if position >= len(args) :
+        return (None,tuierrors.TuiError(f"SyntaxError: missing token of type {[t.__repr__() for t in tokentypes]} at position {position+2}"))
+    if (wanted_token := args[position]).type not in tokentypes:
+        return (None,tuierrors.TuiError(f"SyntaxError: expected token of type {[t.__repr__() for t in tokentypes]} at position {position+2}, got '{args[position].type.__repr__()}'"))
+    else:
+        return (wanted_token,None)
+
+def parse_body(content: str, separator=';'):
+    return re.split(f' *{separator} *',content)
+
+def parse_param(content: str, separator=','):
+    return re.split(f' *{separator} *',content)
+
+def parse_array(content: str, separator=','):
+    return re.split(f' *{separator} *',content)
+
 
 def parse(inp_string: str) -> list[ParseToken]:
     #this splits elements with spaces not included in a "block"
@@ -49,15 +80,17 @@ def parse(inp_string: str) -> list[ParseToken]:
         elif ARR_PATTERN.fullmatch(p):
             tokens.append(ParseToken(TokenType.ARRAY,ARR_PATTERN.fullmatch(p).group('arr_content')))
         elif STR_PATTERN.fullmatch(p):
-            tokens.append(ParseToken(TokenType.STR,STR_PATTERN.fullmatch(p).group('str_content')))
-        elif (arg_mat := re.fullmatch(r'[a-zA-Z_@]\w*',p)):
+            tokens.append(ParseToken(TokenType.STRLIT, STR_PATTERN.fullmatch(p).group('str_content')))
+        elif (arg_mat := re.fullmatch(r'[a-zA-Z_]\w*',p)):
             tokens.append(ParseToken(TokenType.ARG,arg_mat.group()))
             del arg_mat
+        elif (varref := re.fullmatch(r'\$\w+',p)):
+            tokens.append(ParseToken(TokenType.VARREF,varref.group()[1:]))
         elif (intlit_mat := re.fullmatch(r'\d+',p)):
-            tokens.append(ParseToken(TokenType.INT,intlit_mat.group()))
+            tokens.append(ParseToken(TokenType.INTLIT, intlit_mat.group()))
             del intlit_mat
         elif (fltlit_mat := re.fullmatch(r'\d*\.\d+',p)):
-            tokens.append(ParseToken(TokenType.FLT,fltlit_mat.group()))
+            tokens.append(ParseToken(TokenType.FLTLIT, fltlit_mat.group()))
             del fltlit_mat
         else:
             tokens.append(ParseToken(TokenType.UNK,p))

@@ -3,7 +3,6 @@ import allocable as al
 
 _VARS = []            #variables
 _BOOL = False         #boolean result
-_ERR_QUIT = True #error quitting
 _FUN_RET = None       #Function return
 _VARREF_SYM = '$'     #Variable reference symbol
 

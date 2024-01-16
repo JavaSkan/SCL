@@ -1,4 +1,5 @@
 import os
+
 import ulang as ul
 import allocable as al
 import env as ev
@@ -7,34 +8,36 @@ import tuierrors as terr
 import tuiparsing as tp
 
 
-def display_f(args):
-	try:
-		res = ""
-		add = ""
-		for i,arg in enumerate(args):
-			add = ul.var_ref(arg.value)
-			res += add
-			res += " " if i != len(args)-1 else " "
-		print(res,end="")
-	except IndexError:
-		terr.TuiArgsMismatchError().trigger()
+def display_f(args: list[tp.ParseToken]):
+	for i,arg in enumerate(args):
+		print(arg.value,end=(" " if i < len(args)-1 else ""))
 
-def displayl_f(args):
+def displayl_f(args: list[tp.ParseToken]) -> None|terr.TuiError:
 	try:
 		display_f(args)
 		print()
 	except IndexError:
-		terr.TuiArgsMismatchError().trigger()
+		return terr.TuiArgsMismatchError()
 
 
-def loop_f(args):
-	insts = ul.parse_body(args[1])
-	for i in range(int(ul.var_ref(args[0]))):
-		for ins in insts:
-			if type(ins) is str:
-				ul.execute(ins)
-			else:
-				ul.execute_block(ins)
+def loop_f(args: list[tp.ParseToken]) -> None|terr.TuiError:
+	it_tok, err = tp.try_get([tp.TokenType.VARREF,tp.TokenType.INTLIT],0,args)
+	if err:
+		return err
+	it = 0
+	if it_tok.type == tp.TokenType.VARREF:
+		it = int(ul.var_ref(it_tok.value))
+	else:
+		it = int(it_tok.value)
+	del it_tok
+	body_tok, err = tp.try_get([tp.TokenType.BODY],1,args)
+	if err:
+		return err
+	instructions = tp.parse_body(body_tok.value)
+	del body_tok
+	for i in range(it):
+		for ins in instructions:
+			ul.execute(ins)
 
 
 def new_f(args):
@@ -319,12 +322,6 @@ def call_f(args):
 	if type(fun) is not al.Function:
 		terr.TuiNotCallableError(args[0]).trigger()
 	fun.execute_fun(args[1:])
-
-def enable_err_quit_f(args):
-	ev._ERR_QUIT = True
-
-def disable_err_quit_f(args):
-	ev._ERR_QUIT = False
 
 def read_f(args):
 	if (var := ev.get_from_id(args[0])) == None:

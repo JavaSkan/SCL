@@ -1,7 +1,6 @@
 import env
 import ulang
 
-
 def main():
     env._ERR_QUIT = False
     script = ""

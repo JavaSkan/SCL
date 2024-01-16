@@ -20,7 +20,5 @@ cmds = {"dp":	  cmds.display_f,
 		"ret":    cmds.ret_f,
 		"vr":  	  cmds.vr_f,
 		"call":	  cmds.call_f,
-		"enable_eq" : cmds.enable_err_quit_f,
-		"disable_eq": cmds.disable_err_quit_f,
 		"read":     cmds.read_f
 		}
