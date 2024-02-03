@@ -1,8 +1,8 @@
 from enum import Enum, auto
 
-import ulang as ul
+from parser import errors as err
+from runtime import ulang as ul
 import env as ev
-import tuierrors as terr
 
 #TODO create bool type and implement boolean system
 
@@ -139,20 +139,20 @@ class Function(Allocable):
     """
     def set_params(self,arguments: list[str]):
         if (loc_len := len(self.locals)) != (val_len := len(arguments)):
-            terr.TuiFunArgsMismatchError(loc_len, val_len).trigger()
+            err.SCLFunArgsMismatchError(loc_len, val_len).trigger()
         for i in range(len(self.locals)):
             if (arg_var := (ev.get_from_id(arguments[i][1:]) if ul.is_var_ref(arguments[i]) else arguments[i])) == None:
-                terr.TuiNotFoundError(arguments[i]).trigger()
+                err.SCLNotFoundError(arguments[i]).trigger()
             if type(arg_var) is str:
                 if self.locals[i].is_compatible_with_type(arg_var):
                     self.locals[i].set_value(self.locals[i].convert_str_value_to_type(arg_var))
                 else:
-                    terr.TuiWrongTypeError(self.locals[i].type.__repr__()).trigger()
+                    err.SCLWrongTypeError(self.locals[i].type.__repr__()).trigger()
             else:
                 if self.locals[i].is_compatible_with_type(str(arg_var.get_value())):
                     self.locals[i].set_value(arg_var.get_value())
                 else:
-                    terr.TuiWrongTypeError(self.locals[i].type.__repr__(),arg_var.type.__repr__()).trigger()
+                    err.SCLWrongTypeError(self.locals[i].type.__repr__(),arg_var.type.__repr__()).trigger()
 
     def del_locals(self):
         for l in self.locals:

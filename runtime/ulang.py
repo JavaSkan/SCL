@@ -1,7 +1,7 @@
-import tuierrors
-import env
-import funlink as fl
-import tuiparsing
+import commands.funlink
+import parser.errors as errors
+from runtime import env
+import parser.parsing as parsing
 
 
 def is_var_ref(id:str) -> bool:
@@ -15,13 +15,13 @@ def is_valid_name(name: str) -> bool:
     return name.isidentifier()
 
 def execute(inst):
-    parsed = tuiparsing.parse(inst)
-    if (command_fun:=fl.cmds.get((command_id := parsed[0].value))):
+    parsed = parsing.parse(inst)
+    if (command_fun:= commands.funlink.cmds.get((command_id := parsed[0].value))):
         err = command_fun(parsed[1:])
         if err:
             err.trigger(line=inst)
     else:
-        tuierrors.TuiUnknownCommand(command_id).trigger(line=inst)
+        errors.SCLUnknownCommandError(command_id).trigger(line=inst)
 
 def execute_block(block: list):
     for ins in block:

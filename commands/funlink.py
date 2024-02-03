@@ -1,4 +1,4 @@
-import cmds
+from commands import cmds
 
 cmds = {"dp":	  cmds.display_f,
 		"dpl":	  cmds.displayl_f,

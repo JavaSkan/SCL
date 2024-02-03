@@ -1,4 +1,4 @@
-class TuiError:
+class SCLError:
 
     def __init__(self,msg:str):
         self.err_msg = msg
@@ -15,7 +15,7 @@ class TuiError:
         # if env._ERR_QUIT:
         #     quit()
 
-class TuiUnknownCommand(TuiError):
+class SCLUnknownCommandError(SCLError):
     """
     comm: the command
     Raised when an unknown command is given
@@ -24,7 +24,7 @@ class TuiUnknownCommand(TuiError):
         self.msg = "Unknown Command"
         super().__init__(self.msg)
 
-class TuiArgsMismatchError(TuiError):
+class SCLArgsMismatchError(SCLError):
     """
     Raised when arguments are mismatching during a command call
     """
@@ -32,7 +32,7 @@ class TuiArgsMismatchError(TuiError):
         self.msg = "Args don't match"
         super().__init__(self.msg)
 
-class TuiFunArgsMismatchError(TuiError):
+class SCLFunArgsMismatchError(SCLError):
     """
     nan: number of arguments needed
     nap: number of arguments provided
@@ -44,7 +44,7 @@ class TuiFunArgsMismatchError(TuiError):
                                               f"missing {nan - nap} arguments")
         super().__init__(self.msg)
 
-class TuiNotFoundError(TuiError):
+class SCLNotFoundError(SCLError):
     """
     id: id of the allocable
     Raised when trying to interact with a variable that isn't existing
@@ -53,7 +53,7 @@ class TuiNotFoundError(TuiError):
         self.msg = f"Element '{id}' not found"
         super().__init__(self.msg)
 
-class TuiNotCallableError(TuiError):
+class SCLNotCallableError(SCLError):
     """
     Raised when attempting to call a non-callable object
     """
@@ -61,7 +61,7 @@ class TuiNotCallableError(TuiError):
         self.msg = f"Element '{id}' cannot be called"
         super().__init__(self.msg)
 
-class TuiInvalidNameError(TuiError):
+class SCLInvalidNameError(SCLError):
     """
     This Error is raised when naming a variable incorrectly
     """
@@ -69,7 +69,7 @@ class TuiInvalidNameError(TuiError):
         self.msg = f"'{id}' is not a valid name"
         super().__init__(self.msg)
 
-class TuiWrongTypeError(TuiError):
+class SCLWrongTypeError(SCLError):
     """
     type_o: original type
     type_p: provided type
@@ -83,7 +83,7 @@ class TuiWrongTypeError(TuiError):
             self.msg += f"value for this operation must be '{type_o}'"
         super().__init__(self.msg)
 
-class TuiWrongOperationError(TuiError):
+class SCLWrongOperationError(SCLError):
     """
     operation: operation on variable
     type: incompatible type
@@ -94,7 +94,7 @@ class TuiWrongOperationError(TuiError):
         self.msg = f"Type '{type}' does not support this operation ({operation})"
         super().__init__(self.msg)
 
-class TuiDivisionByZeroError(TuiError):
+class SCLDivisionByZeroError(SCLError):
     """
     Raised when attempting to divide by zero
     """
@@ -102,7 +102,7 @@ class TuiDivisionByZeroError(TuiError):
     def __init__(self,var_id:str):
         super().__init__(f"Cannot divide '{var_id}' by zero")
 
-class TuiUnknownTypeError(TuiError):
+class SCLUnknownTypeError(SCLError):
     """
     Raised invalid type is given
     """

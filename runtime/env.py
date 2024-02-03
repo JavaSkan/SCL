@@ -1,5 +1,5 @@
-import tuierrors as terr
-import allocable as al
+from parser import errors as terr
+from runtime import allocable as al
 
 _VARS = []            #variables
 _BOOL = False         #boolean result
@@ -20,4 +20,4 @@ def get_value_from_id(id):
         try:
             return var.vl
         except AttributeError:
-            terr.TuiNotFoundError(id).trigger()
+            terr.SCLNotFoundError(id).trigger()

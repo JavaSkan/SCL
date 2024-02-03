@@ -1,27 +1,23 @@
 import os
 
-import ulang as ul
-import allocable as al
-import env as ev
+from parser import parsing as tp, keywords as kws, errors as err
+from runtime import allocable as al, env as ev, ulang as ul
 import manuals
-import tuierrors as terr
-import tuiparsing as tp
-import keywords as kws
 
 
 def display_f(args: list[tp.ParseToken]):
 	for i,arg in enumerate(args):
 		print(arg.value,end=(" " if i < len(args)-1 else ""))
 
-def displayl_f(args: list[tp.ParseToken]) -> None|terr.TuiError:
+def displayl_f(args: list[tp.ParseToken]):
 	try:
 		display_f(args)
 		print()
 	except IndexError:
-		return terr.TuiArgsMismatchError()
+		return err.SCLArgsMismatchError()
 
 
-def loop_f(args: list[tp.ParseToken]) -> None|terr.TuiError:
+def loop_f(args: list[tp.ParseToken]):
 	it_tok, err = tp.try_get([tp.TokenType.VARREF,tp.TokenType.INTLIT],0,args)
 	if err:
 		return err
@@ -41,7 +37,7 @@ def loop_f(args: list[tp.ParseToken]) -> None|terr.TuiError:
 			ul.execute(ins)
 
 
-def new_f(args: list[tp.ParseToken]) -> None|terr.TuiError:
+def new_f(args: list[tp.ParseToken]):
 	type_tok, err = tp.try_get([tp.TokenType.ARG],0,args)
 	if err:
 		return err
@@ -49,10 +45,10 @@ def new_f(args: list[tp.ParseToken]) -> None|terr.TuiError:
 	if err:
 		return err
 	if not ul.is_valid_name(var_name_tok.value):
-		return terr.TuiInvalidNameError(var_name_tok.value)
+		return err.SCLInvalidNameError(var_name_tok.value)
 	del var_name_tok
 	if not (_type := kws.data_types_keywords.get(type_tok.value)):
-		return terr.TuiUnknownTypeError(type_tok.value)
+		return err.SCLUnknownTypeError(type_tok.value)
 	value_tok, err = tp.try_get([_type,tp.TokenType.VARREF],2,args)
 	if err:
 		return err
@@ -79,7 +75,7 @@ def end_f(args):
 				if ul.var_ref(args[1]) == "1":
 					print("ended with a failure")
 		else:
-			terr.TuiError("Unknown End Error Signal").trigger()
+			err.SCLError("Unknown End Error Signal").trigger()
 	ev._VARS.clear()
 	quit()
 
@@ -91,34 +87,34 @@ def delete_f(args):
 
 def set_f(args):
 	if (var := ev.get_from_id(args[0])) == None:
-		terr.TuiNotFoundError(args[0]).trigger()
+		err.SCLNotFoundError(args[0]).trigger()
 	new = ev.get_from_id(args[1][1:]) if ul.is_var_ref(args[1]) else args[1]
 	if type(new) is str:
 		if var.is_compatible_with_type(new):
 			var.set_value(var.convert_str_value_to_type(new))
 		else:
-			terr.TuiWrongTypeError(var.type.__repr__()).trigger()
+			err.SCLWrongTypeError(var.type.__repr__()).trigger()
 	else:
 		if var.type == new.type:
 			var.set_value(new.get_value())
 		else:
-			terr.TuiWrongTypeError(var.type.__repr__(),new.type.__repr__()).trigger()
+			err.SCLWrongTypeError(var.type.__repr__(),new.type.__repr__()).trigger()
 
 def execute_f(args):
 	if os.path.exists(args[0]):
-		if args[0].endswith(".tui"):
+		if args[0].endswith(".scl"):
 			with open(args[0],"r") as f:
 				lines = f.read().split("\n")
 				for line in lines:
 					ul.execute(line)
 		else:
-			terr.TuiError("Incorrect file extension").trigger()
+			err.SCLError("Incorrect file extension").trigger()
 	else:
-		terr.TuiError("There is not such file").trigger()
+		err.SCLError("There is not such file").trigger()
 
 def add_f(args):
 	if (var1 := ev.get_from_id(args[0])) == None:
-		terr.TuiNotFoundError(args[0]).trigger()
+		err.SCLNotFoundError(args[0]).trigger()
 	var2 = ev.get_from_id(args[1][1:]) if ul.is_var_ref(args[1]) else args[1]
 	if type(var1) is al.Array:
 		var1.add_v(var2)
@@ -127,127 +123,127 @@ def add_f(args):
 		if var1.is_compatible_with_type(var2):
 			var1.set_value(var1.get_value() + var1.convert_str_value_to_type(var2))
 		else:
-			terr.TuiWrongTypeError(var1.type.__repr__()).trigger()
+			err.SCLWrongTypeError(var1.type.__repr__()).trigger()
 	else:
 		if var2 == None:
-			terr.TuiNotFoundError(args[1]).trigger()
+			err.SCLNotFoundError(args[1]).trigger()
 		if var1.is_compatible_with_type(str(var2.get_value())):
 			var1.set_value(var1.get_value() + var2.get_value())
 		else:
-			terr.TuiWrongTypeError(var1.type.__repr__(),var2.type.__repr__()).trigger()
+			err.SCLWrongTypeError(var1.type.__repr__(),var2.type.__repr__()).trigger()
 
 
 def sub_f(args):
 	if (var1 := ev.get_from_id(args[0])) == None:
-		terr.TuiNotFoundError(args[0]).trigger()
+		err.SCLNotFoundError(args[0]).trigger()
 	var2 = ev.get_from_id(args[1][1:]) if ul.is_var_ref(args[1]) else args[1]
 	if type(var1) is al.Array:
-		terr.TuiWrongOperationError("subtraction","array")
+		err.SCLWrongOperationError("subtraction","array")
 		return
 	if type(var2) is str:
 		if var1.is_compatible_with_type(var2):
 			if var1.type in (al.DT_TYPES.INT,al.DT_TYPES.FLT):
 				var1.set_value(var1.get_value() - var1.convert_str_value_to_type(var2))
 			else:
-				terr.TuiWrongOperationError("subtraction",var1.type.__repr__()).trigger()
+				err.SCLWrongOperationError("subtraction",var1.type.__repr__()).trigger()
 		else:
-			terr.TuiWrongTypeError(var1.type.__repr__()).trigger()
+			err.SCLWrongTypeError(var1.type.__repr__()).trigger()
 	else:
 		if var2 == None:
-			terr.TuiNotFoundError(args[1]).trigger()
+			err.SCLNotFoundError(args[1]).trigger()
 		if var1.is_compatible_with_type(str(var2.get_value())):
 			if var1.type in (al.DT_TYPES.INT, al.DT_TYPES.FLT):
 				var1.set_value(var1.get_value() - var2.get_value())
 			else:
-				terr.TuiWrongOperationError("subtraction", var1.type.__repr__()).trigger()
+				err.SCLWrongOperationError("subtraction", var1.type.__repr__()).trigger()
 		else:
-			terr.TuiWrongTypeError(var1.type.__repr__(),var2.type.__repr__()).trigger()
+			err.SCLWrongTypeError(var1.type.__repr__(),var2.type.__repr__()).trigger()
 
 def mul_f(args):
 	if (var1 := ev.get_from_id(args[0])) == None:
-		terr.TuiNotFoundError(args[0]).trigger()
+		err.SCLNotFoundError(args[0]).trigger()
 	var2 = ev.get_from_id(args[1][1:]) if ul.is_var_ref(args[1]) else args[1]
 	if type(var1) is al.Array:
-		terr.TuiWrongOperationError("multiplication", "array")
+		err.SCLWrongOperationError("multiplication", "array")
 		return
 	if type(var2) is str:
 		if var1.is_compatible_with_type(var2):
 			if var1.type in (al.DT_TYPES.INT, al.DT_TYPES.FLT):
 				var1.set_value(var1.get_value() * var1.convert_str_value_to_type(var2))
 			else:
-				terr.TuiWrongOperationError("multiplication", var1.type.__repr__()).trigger()
+				err.SCLWrongOperationError("multiplication", var1.type.__repr__()).trigger()
 		else:
-			terr.TuiWrongTypeError(var1.type.__repr__()).trigger()
+			err.SCLWrongTypeError(var1.type.__repr__()).trigger()
 	else:
 		if var2 == None:
-			terr.TuiNotFoundError(args[1]).trigger()
+			err.SCLNotFoundError(args[1]).trigger()
 		if var1.is_compatible_with_type(str(var2.get_value())):
 			if var1.type in (al.DT_TYPES.INT, al.DT_TYPES.FLT):
 				var1.set_value(var1.get_value() * var2.get_value())
 			else:
-				terr.TuiWrongOperationError("multiplication", var1.type.__repr__()).trigger()
+				err.SCLWrongOperationError("multiplication", var1.type.__repr__()).trigger()
 		else:
-			terr.TuiWrongTypeError(var1.type.__repr__(), var2.type.__repr__()).trigger()
+			err.SCLWrongTypeError(var1.type.__repr__(), var2.type.__repr__()).trigger()
 
 def div_f(args):
 	if (var1 := ev.get_from_id(args[0])) == None:
-		terr.TuiNotFoundError(args[0]).trigger()
+		err.SCLNotFoundError(args[0]).trigger()
 	var2 = ev.get_from_id(args[1][1:]) if ul.is_var_ref(args[1]) else args[1]
 	if type(var1) is al.Array:
-		terr.TuiWrongOperationError("division", "array")
+		err.SCLWrongOperationError("division", "array")
 		return
 	if type(var2) is str:
 		if var1.is_compatible_with_type(var2):
 			if float(var2) == 0.0:
-				terr.TuiDivisionByZeroError(var1.id).trigger()
+				err.SCLDivisionByZeroError(var1.id).trigger()
 			if var1.type == al.DT_TYPES.INT:
 				var1.set_value(var1.get_value() // var1.convert_str_value_to_type(var2))
 			elif var1.type == al.DT_TYPES.FLT:
 				var1.set_value(var1.get_value() / var1.convert_str_value_to_type(var2))
 			else:
-				terr.TuiWrongOperationError("division", var1.type.__repr__()).trigger()
+				err.SCLWrongOperationError("division", var1.type.__repr__()).trigger()
 		else:
-			terr.TuiWrongTypeError(var1.type.__repr__()).trigger()
+			err.SCLWrongTypeError(var1.type.__repr__()).trigger()
 	else:
 		if var2 == None:
-			terr.TuiNotFoundError(args[1]).trigger()
+			err.SCLNotFoundError(args[1]).trigger()
 		if var1.is_compatible_with_type(str(var2.get_value())):
 			if var2.get_value() == 0.0:
-				terr.TuiDivisionByZeroError(var1.id).trigger()
+				err.SCLDivisionByZeroError(var1.id).trigger()
 			if var1.type == al.DT_TYPES.INT:
 				var1.set_value(var1.get_value() // var2.get_value())
 			elif var1.type == al.DT_TYPES.FLT:
 				var1.set_value(var1.get_value() / var2.get_value())
 			else:
-				terr.TuiWrongOperationError("division", var1.type.__repr__()).trigger()
+				err.SCLWrongOperationError("division", var1.type.__repr__()).trigger()
 		else:
-			terr.TuiWrongTypeError(var1.type.__repr__(), var2.type.__repr__()).trigger()
+			err.SCLWrongTypeError(var1.type.__repr__(), var2.type.__repr__()).trigger()
 
 def pow_f(args):
 	if (var1 := ev.get_from_id(args[0])) == None:
-		terr.TuiNotFoundError(args[0]).trigger()
+		err.SCLNotFoundError(args[0]).trigger()
 	var2 = ev.get_from_id(args[1][1:]) if ul.is_var_ref(args[1]) else args[1]
 	if type(var1) is al.Array:
-		terr.TuiWrongOperationError("power", "array")
+		err.SCLWrongOperationError("power", "array")
 		return
 	if type(var2) is str:
 		if var1.is_compatible_with_type(var2):
 			if var1.type in (al.DT_TYPES.INT, al.DT_TYPES.FLT):
 				var1.set_value(var1.get_value() ** var1.convert_str_value_to_type(var2))
 			else:
-				terr.TuiWrongOperationError("power", var1.type.__repr__()).trigger()
+				err.SCLWrongOperationError("power", var1.type.__repr__()).trigger()
 		else:
-			terr.TuiWrongTypeError(var1.type.__repr__()).trigger()
+			err.SCLWrongTypeError(var1.type.__repr__()).trigger()
 	else:
 		if var2 == None:
-			terr.TuiNotFoundError(args[1]).trigger()
+			err.SCLNotFoundError(args[1]).trigger()
 		if var1.is_compatible_with_type(str(var2.get_value())):
 			if var1.type in (al.DT_TYPES.INT, al.DT_TYPES.FLT):
 				var1.set_value(var1.get_value() ** var2.get_value())
 			else:
-				terr.TuiWrongOperationError("power", var1.type.__repr__()).trigger()
+				err.SCLWrongOperationError("power", var1.type.__repr__()).trigger()
 		else:
-			terr.TuiWrongTypeError(var1.type.__repr__(), var2.type.__repr__()).trigger()
+			err.SCLWrongTypeError(var1.type.__repr__(), var2.type.__repr__()).trigger()
 
 def help_f(args):
 	match args[0]:
@@ -283,20 +279,16 @@ def help_f(args):
 			print(manuals.VR)
 		case 'call':
 			print(manuals.CALL)
-		case 'enable_eq':
-			print(manuals.ENABLE_EQ)
-		case 'disable_eq':
-			print(manuals.DISABLE_EQ)
 		case 'read':
 			print(manuals.READ)
 		case 'list':
 			print("dp, dpl, loop, new, set, stt, end, clr, del, exec, add, sub, mu, div, pow, help, fun, ret, vr, call, enable_eq, disable_eq, read")
 		case _:
-			terr.TuiError("Unknown Command, either it does not exist or there is no manual for it").trigger()
+			err.SCLError("Unknown Command, either it does not exist or there is no manual for it").trigger()
 
 def fun_f(args):
 	if not ul.is_valid_name(args[0]):
-		terr.TuiInvalidNameError(args[0]).trigger()
+		err.SCLInvalidNameError(args[0]).trigger()
 
 	#fun <name> {body}
 	if (alen := len(args)) == 2:
@@ -314,20 +306,20 @@ def vr_f(args):
 	elif args[0] == 'reset':
 		ev._VARREF_SYM = '$'
 	else:
-		terr.TuiError(f'{args[0]} is not a valid argument for this command').trigger()
+		err.SCLError(f'{args[0]} is not a valid argument for this command').trigger()
 
 def call_f(args):
 	if (fun := ev.get_from_id(args[0])) == None:
-		terr.TuiNotFoundError(args[0]).trigger()
+		err.SCLNotFoundError(args[0]).trigger()
 	if type(fun) is not al.Function:
-		terr.TuiNotCallableError(args[0]).trigger()
+		err.SCLNotCallableError(args[0]).trigger()
 	fun.execute_fun(args[1:])
 
 def read_f(args):
 	if (var := ev.get_from_id(args[0])) == None:
-		terr.TuiNotFoundError(args[0]).trigger()
+		err.SCLNotFoundError(args[0]).trigger()
 	user_input = input("")
 	if var.is_compatible_with_type(user_input):
 		var.set_value(var.convert_str_value_to_type(user_input))
 	else:
-		terr.TuiWrongTypeError(var.type.__repr__()).trigger()
+		err.SCLWrongTypeError(var.type.__repr__()).trigger()
