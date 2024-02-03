@@ -57,13 +57,13 @@ def try_get(tokentypes:list[TokenType],position:int,args:list[ParseToken]) -> (P
     else:
         return (wanted_token,None)
 
-def parse_body(content: str, separator=';'):
+def parse_body(content: str, separator=';') -> list[str]:
     return re.split(f' *{separator} *',content)
 
-def parse_param(content: str, separator=','):
+def parse_param(content: str, separator=',') -> list[str]:
     return re.split(f' *{separator} *',content)
 
-def parse_array(content: str, separator=','):
+def parse_array(content: str, separator=',') -> list[str]:
     return re.split(f' *{separator} *',content)
 
 

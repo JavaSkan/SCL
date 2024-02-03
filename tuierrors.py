@@ -95,10 +95,17 @@ class TuiWrongOperationError(TuiError):
         super().__init__(self.msg)
 
 class TuiDivisionByZeroError(TuiError):
-
     """
     Raised when attempting to divide by zero
     """
 
     def __init__(self,var_id:str):
         super().__init__(f"Cannot divide '{var_id}' by zero")
+
+class TuiUnknownTypeError(TuiError):
+    """
+    Raised invalid type is given
+    """
+
+    def __init__(self, type_name: str):
+        super().__init__(f"Invalid type given called '{type_name}'")

@@ -6,6 +6,7 @@ import env as ev
 import manuals
 import tuierrors as terr
 import tuiparsing as tp
+import keywords as kws
 
 
 def display_f(args: list[tp.ParseToken]):
@@ -40,25 +41,25 @@ def loop_f(args: list[tp.ParseToken]) -> None|terr.TuiError:
 			ul.execute(ins)
 
 
-def new_f(args):
-	if not ul.is_valid_name(args[1]):
-		terr.TuiInvalidNameError(args[1]).trigger()
+def new_f(args: list[tp.ParseToken]) -> None|terr.TuiError:
+	type_tok, err = tp.try_get([tp.TokenType.ARG],0,args)
+	if err:
+		return err
+	var_name_tok, err = tp.try_get([tp.TokenType.ARG],1,args)
+	if err:
+		return err
+	if not ul.is_valid_name(var_name_tok.value):
+		return terr.TuiInvalidNameError(var_name_tok.value)
+	del var_name_tok
+	if not (_type := kws.data_types_keywords.get(type_tok.value)):
+		return terr.TuiUnknownTypeError(type_tok.value)
+	value_tok, err = tp.try_get([_type,tp.TokenType.VARREF],2,args)
+	if err:
+		return err
+	if value_tok.type == tp.TokenType.VARREF:
+		pass
+	#TODO type checking of variable referencing, same for loop command
 
-	match args[0]:
-		case "str":
-			al.Variable(al.DT_TYPES.STR, args[1], ul.var_ref(" ".join(args[2:])))
-		case "int":
-			if not (str_int_value := ul.var_ref("".join(args[2:]))).isdigit():
-				terr.TuiWrongTypeError("int").trigger()
-			al.Variable(al.DT_TYPES.INT,args[1],int(str_int_value))
-		case "flt":
-			if not (str_int_value := ul.var_ref("".join(args[2:]))).replace('.','',1).isdigit():
-				terr.TuiWrongTypeError("float").trigger()
-			al.Variable(al.DT_TYPES.FLT, args[1], float(str_int_value))
-		case "arr":
-			al.Array(args[1], ul.parse_arr(args[2]))
-		case _:
-			terr.TuiError(f"Unknown type {args[0]}").trigger()
 
 
 def state_f(args):
@@ -66,7 +67,6 @@ def state_f(args):
 	print(f"BOOL_STATE : {ev._BOOL}")
 	print(f"FUNCTION RETURN VALUE : {ev._FUN_RET}")
 	print(f"VARIABLE REFERENCING SYMBOL : {ev._VARREF_SYM}")
-	print(f"ERR_QUIT:{ev._ERR_QUIT}")
 
 def end_f(args):
 	if (alen := len(args)) != 0:
