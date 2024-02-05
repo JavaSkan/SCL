@@ -7,7 +7,8 @@ from parser import parsing
 data_types_keywords = {
     'int': parsing.TokenType.INTLIT,
     'flt': parsing.TokenType.FLTLIT,
-    'str': parsing.TokenType.STRLIT
+    'str': parsing.TokenType.STRLIT,
+    'bool': parsing.TokenType.BOOLLIT
 }
 
 new_cmd_varkind_kws = {

@@ -47,6 +47,11 @@ def var_ref_getvalue(tok: ps.ParseToken, expected_vartype: al.DT_TYPES):
                     return tok.value,None
                 else:
                     return None,errors.SCLWrongTypeError(expected_vartype.__repr__(), ps.TokenType.STRLIT.__repr__())
+            case ps.TokenType.BOOLLIT:
+                if expected_vartype == al.DT_TYPES.BOOL:
+                    return tok.value,None
+                else:
+                    return None,errors.SCLWrongTypeError(expected_vartype.__repr__(), ps.TokenType.BOOLLIT.__repr__())
             case _:
                 return None,errors.SCLError("Invalid token, is not compatible with datatypes")
 
@@ -103,7 +108,7 @@ def new_f(args: list[ps.ParseToken]):
         return errors.SCLInvalidNameError(varname_tok.value)
     varname: str = varname_tok.value
 
-    value_tok, er = ps.try_get(ps.TokenType.make_value(ps.TokenType.INTLIT,ps.TokenType.FLTLIT,ps.TokenType.STRLIT),3,args)
+    value_tok, er = ps.try_get(ps.TokenType.make_value(ps.TokenType.INTLIT,ps.TokenType.FLTLIT,ps.TokenType.STRLIT,ps.TokenType.BOOLLIT),3,args)
     if er:
         return er
     value, getvalueerr = var_ref_getvalue(value_tok,al.DT_TYPES.str_to_type(vartype))

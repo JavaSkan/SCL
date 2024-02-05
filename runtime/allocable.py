@@ -3,16 +3,17 @@ from enum import Enum, auto
 from runtime import errors as err, env as ev
 from runtime.ulang import var_ref_str, is_var_ref
 from runtime.execution import execute, execute_block
-#TODO create bool type and implement boolean system
+#TODO implement boolean system
 
 #Enums
 COUNT = 0
 
 class DT_TYPES(Enum):
 
-    INT = auto()
-    FLT = auto()
-    STR = auto()
+    INT  = auto()
+    FLT  = auto()
+    STR  = auto()
+    BOOL = auto()
 
     def __repr__(self):
         return self.to_python_type().__class__.__name__
@@ -25,6 +26,8 @@ class DT_TYPES(Enum):
                 return float()
             case DT_TYPES.STR:
                 return str()
+            case DT_TYPES.BOOL:
+                return bool()
 
     def str_to_type(str_type: str):
         match str_type:
@@ -34,6 +37,8 @@ class DT_TYPES(Enum):
                 return DT_TYPES.FLT
             case 'str':
                 return DT_TYPES.STR
+            case 'bool':
+                return DT_TYPES.BOOL
 
 class VARKIND(Enum):
     MUT = auto()
@@ -101,6 +106,8 @@ class Variable(Allocable):
                 return str_value.replace('.','',1).isdigit()
             case DT_TYPES.STR:
                 return True
+            case DT_TYPES.BOOL:
+                return str_value == 'true' or str_value == 'false'
 
     def convert_str_value_to_type(self,str_value:str):
         match self.type:
@@ -110,6 +117,8 @@ class Variable(Allocable):
                 return float(str_value)
             case DT_TYPES.STR:
                 return str_value
+            case DT_TYPES.BOOL:
+                return bool(str_value)
 
 
     def __repr__(self):

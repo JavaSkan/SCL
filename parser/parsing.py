@@ -16,6 +16,7 @@ class TokenType(Enum):
     STRLIT   = auto()
     INTLIT   = auto()
     FLTLIT   = auto()
+    BOOLLIT  = auto()
     VARREF   = auto()
     UNK      = -1
 
@@ -35,6 +36,8 @@ class TokenType(Enum):
                 return 'integer literal'
             case 'FLTLIT':
                 return 'float literal'
+            case 'BOOLLIT':
+                return 'boolean literal'
             case 'VARREF':
                 return 'variable reference'
             case 'UNK':
@@ -97,9 +100,6 @@ def parse(inp_string: str) -> list[ParseToken]:
             tokens.append(ParseToken(TokenType.ARRAY,ARR_PATTERN.fullmatch(p).group('arr_content')))
         elif STR_PATTERN.fullmatch(p):
             tokens.append(ParseToken(TokenType.STRLIT, STR_PATTERN.fullmatch(p).group('str_content')))
-        elif (arg_mat := re.fullmatch(r'[a-zA-Z_]\w*',p)):
-            tokens.append(ParseToken(TokenType.ARG,arg_mat.group()))
-            del arg_mat
         elif (varref := re.fullmatch(r'\$\w+',p)):
             tokens.append(ParseToken(TokenType.VARREF,varref.group()[1:]))
         elif (intlit_mat := re.fullmatch(r'\d+',p)):
@@ -108,6 +108,11 @@ def parse(inp_string: str) -> list[ParseToken]:
         elif (fltlit_mat := re.fullmatch(r'\d*\.\d+',p)):
             tokens.append(ParseToken(TokenType.FLTLIT, fltlit_mat.group()))
             del fltlit_mat
+        elif (boollit_mat := re.fullmatch(r'true|false',p)):
+            tokens.append(ParseToken(TokenType.BOOLLIT, boollit_mat.group()))
+        elif (arg_mat := re.fullmatch(r'[a-zA-Z_]\w*',p)):
+            tokens.append(ParseToken(TokenType.ARG,arg_mat.group()))
+            del arg_mat
         else:
             tokens.append(ParseToken(TokenType.UNK,p))
     return tokens
