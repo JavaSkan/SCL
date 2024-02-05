@@ -48,7 +48,14 @@ class VARKIND(Enum):
                 return VARKIND.CONST
             case "temp":
                 return VARKIND.TEMP
-
+    def __repr__(self):
+        match self.name:
+            case VARKIND.VAR.name:
+                return "var"
+            case VARKIND.CONST.name:
+                return "cst"
+            case VARKIND.TEMP.name:
+                return "tmp"
 class Allocable:
 
     def __init__(self, ident:str, value):
@@ -106,7 +113,7 @@ class Variable(Allocable):
 
 
     def __repr__(self):
-        return f"Var<{self.type.__repr__()}>({self.ident}:{self.vl})"
+        return f"Var<{self.kind.__repr__()} {self.type.__repr__()}>({self.ident}:{self.vl})"
 
 class Array(Allocable):
 

@@ -100,11 +100,13 @@ def new_f(args: list[ps.ParseToken]):
     vartype_tok, er = ps.try_get([ps.TokenType.ARG],1,args)
     if er:
         return er
-    if not varkind_tok.has_specific_value(kws.data_types_keywords):
+    if not vartype_tok.has_specific_value(kws.data_types_keywords):
         return errors.SCLError(f"Syntax Error: expected argument with specific value in {kws.new_cmd_varkind_kws}, got {varkind_tok.value}")
     vartype: str = vartype_tok.value
 
-    varname_tok = ps.try_get([ps.TokenType.ARG],2,args)
+    varname_tok,er = ps.try_get([ps.TokenType.ARG],2,args)
+    if er:
+        return er
     if not ul.is_valid_name(varname_tok.value):
         return errors.SCLInvalidNameError(varname_tok.value)
     varname: str = varname_tok.value
@@ -117,7 +119,7 @@ def new_f(args: list[ps.ParseToken]):
         return getvalueerr
 
     #Creation of the variable
-    ev._VARS.append(al.Variable(al.DT_TYPES.str_to_type(vartype),al.VARKIND.str_to_varkind(varkind),varname,value))
+    al.Variable(al.DT_TYPES.str_to_type(vartype),al.VARKIND.str_to_varkind(varkind),varname,value)
 
 
 
