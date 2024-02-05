@@ -69,21 +69,13 @@ def loop_f(args: list[ps.ParseToken]):
     it_tok, er = ps.try_get(ps.TokenType.make_value(ps.TokenType.INTLIT),0,args)
     if er:
         return er
-    it = 0
-    if it_tok.type == ps.TokenType.VARREF:
-        var = ul.var_ref(it_tok.value)
-        if var.type == al.DT_TYPES.INT:
-            it = int(var.get_value())
-        else:
-            return errors.SCLWrongTypeError("INT",var.type.__repr__())
-    else:
-        it = int(it_tok.value)
-    del it_tok
+    it, er = var_ref_getvalue(it_tok,al.DT_TYPES.INT)
+    if er:
+        return er
     body_tok, ers = ps.try_get([ps.TokenType.BODY],1,args)
     if er:
         return er
     instructions = ps.parse_body(body_tok.value)
-    del body_tok
     for i in range(it):
         for ins in instructions:
             exe.execute(ins)
