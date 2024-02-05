@@ -118,7 +118,7 @@ class Variable(Allocable):
             case DT_TYPES.STR:
                 return str_value
             case DT_TYPES.BOOL:
-                return bool(str_value)
+                return str_value == 'true'
 
 
     def __repr__(self):

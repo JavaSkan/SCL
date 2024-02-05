@@ -29,9 +29,9 @@ STT     = '>>> Shows the environment state\n' + \
           'Syntax: stt'
 
 END     = '>>> Ends the program\n' + \
-          'Syntax: end [0|1] [1]\n' + \
-          '0 for success and 1 for failure, nothing for used end\n' + \
-          'If second argument is 1 then a msg with appear otherwise nothing will show\n'+\
+          'Syntax: end 0|1|int true|false\n' + \
+          '0 for success and 1 for failure,or custom status code, should be an integer\n' + \
+          'If second argument is true then a msg with appear, if false nothing will show\n'+\
           'NOTE:\n'+\
           ' -compatible with variable referencing with both arguments'
 

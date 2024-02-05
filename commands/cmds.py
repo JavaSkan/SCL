@@ -49,7 +49,7 @@ def var_ref_getvalue(tok: ps.ParseToken, expected_vartype: al.DT_TYPES):
                     return None,errors.SCLWrongTypeError(expected_vartype.__repr__(), ps.TokenType.STRLIT.__repr__())
             case ps.TokenType.BOOLLIT:
                 if expected_vartype == al.DT_TYPES.BOOL:
-                    return tok.value,None
+                    return tok.value == 'true',None
                 else:
                     return None,errors.SCLWrongTypeError(expected_vartype.__repr__(), ps.TokenType.BOOLLIT.__repr__())
             case _:
@@ -124,22 +124,26 @@ def state_f(args):
     if nea:
         return nea
     print(f"ALLOCATIONS : {ev._VARS}")
+    print(f"ERROR_CODE: {ev._ERR_CODE}")
     print(f"FUNCTION RETURN VALUE : {ev._FUN_RET}")
     print(f"VARIABLE REFERENCING SYMBOL : {ev._VARREF_SYM}")
 
 def end_f(args):
-    if (alen := len(args)) != 0:
-        if (fst_arg := ul.var_ref_str(args[0])) == "0":
-            if alen == 2:
-                if ul.var_ref_str(args[1]) == "1":
-                    print("ended successfully")
-        elif fst_arg == "1":
-            if alen == 2:
-                if ul.var_ref_str(args[1]) == "1":
-                    print("ended with a failure")
-        else:
-            errors.SCLError("Unknown End Error Signal").trigger()
-    ev._VARS.clear()
+    status_tok, er = ps.try_get(ps.TokenType.make_value(ps.TokenType.INTLIT),0,args)
+    if er:
+        return er
+    status,er = var_ref_getvalue(status_tok,al.DT_TYPES.INT)
+    if er:
+        return er
+    show_tok, er = ps.try_get(ps.TokenType.make_value(ps.TokenType.BOOLLIT),1,args)
+    if er:
+        return er
+    show,er = var_ref_getvalue(show_tok,al.DT_TYPES.BOOL)
+    if er:
+        return er
+    ev._ERR_CODE = status
+    if show:
+        print("ended with success" if status == 0 else "ended with failure")
     quit()
 
 def clear_f(args):
