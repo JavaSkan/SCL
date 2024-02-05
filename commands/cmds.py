@@ -114,10 +114,11 @@ def new_f(args: list[ps.ParseToken]):
     al.Variable(al.DT_TYPES.str_to_type(vartype),al.VARKIND.str_to_varkind(varkind),varname,value)
 
 
-
 def state_f(args):
+    nea = ps.no_extra_args(args)
+    if nea:
+        return nea
     print(f"ALLOCATIONS : {ev._VARS}")
-    print(f"BOOL_STATE : {ev._BOOL}")
     print(f"FUNCTION RETURN VALUE : {ev._FUN_RET}")
     print(f"VARIABLE REFERENCING SYMBOL : {ev._VARREF_SYM}")
 

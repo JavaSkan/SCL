@@ -64,6 +64,15 @@ def try_get(tokentypes:list[TokenType],position:int,args:list[ParseToken]) -> (P
     else:
         return (wanted_token,None)
 
+"""
+When a command doesn't need arguments, only its head should be provided
+"""
+def no_extra_args(args: list[ParseToken]):
+    if len(args) >= 1:
+        return errors.SCLArgsMismatchError(extra=f"Extra arguments provided, please check the command syntax")
+    return None
+
+
 def parse_body(content: str, separator=';') -> list[str]:
     return re.split(f' *{separator} *',content)
 

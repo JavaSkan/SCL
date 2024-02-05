@@ -28,8 +28,8 @@ class SCLArgsMismatchError(SCLError):
     """
     Raised when arguments are mismatching during a command call
     """
-    def __init__(self):
-        self.msg = "Args don't match"
+    def __init__(self,extra=""):
+        self.msg = "Args don't match"+": "+extra
         super().__init__(self.msg)
 
 class SCLFunArgsMismatchError(SCLError):
@@ -39,7 +39,7 @@ class SCLFunArgsMismatchError(SCLError):
     Raised when there is an argument mismatch using functions
     """
     def __init__(self,nan:int,nap:int) -> None:
-        self.msg = "Arguments don't match: " + (f"provided {nap - nan} extra argument(s)" if nap > nan
+        self.msg = "Function arguments don't match: " + (f"provided {nap - nan} extra argument(s)" if nap > nan
                                                   else
                                               f"missing {nan - nap} arguments")
         super().__init__(self.msg)

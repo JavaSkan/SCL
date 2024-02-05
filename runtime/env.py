@@ -1,7 +1,6 @@
 from runtime import allocable as al, errors as err
 
 _VARS = []            #variables
-_BOOL = False         #boolean result
 _FUN_RET = None       #Function return
 _VARREF_SYM = '$'     #Variable reference symbol
 
