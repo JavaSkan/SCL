@@ -13,5 +13,5 @@ data_types_keywords = {
 new_cmd_varkind_kws = {
     'const',
     'temp',
-    'var'
+    'mut'
 }

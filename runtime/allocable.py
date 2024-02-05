@@ -36,22 +36,22 @@ class DT_TYPES(Enum):
                 return DT_TYPES.STR
 
 class VARKIND(Enum):
-    VAR = auto()
+    MUT = auto()
     CONST = auto()
     TEMP = auto()
 
     def str_to_varkind(str_kind: str):
         match str_kind:
-            case "var":
-                return VARKIND.VAR
+            case "mut":
+                return VARKIND.MUT
             case "const":
                 return VARKIND.CONST
             case "temp":
                 return VARKIND.TEMP
     def __repr__(self):
         match self.name:
-            case VARKIND.VAR.name:
-                return "var"
+            case VARKIND.MUT.name:
+                return "mut"
             case VARKIND.CONST.name:
                 return "cst"
             case VARKIND.TEMP.name:

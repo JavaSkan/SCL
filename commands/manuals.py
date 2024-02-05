@@ -14,7 +14,8 @@ LOOP    = '>>> Repeats a set of instructions\n' + \
           ' -compatible with variable referencing (at <count> argument)'
 
 NEW     = '>>> Creates a new variable\n' + \
-          'Syntax: new <type> <name> [<initial_value>]\n' + \
+          'Syntax: new <kind> <type> <name> <initial_value>\n' + \
+          'Kinds are: mut(mutable) const(constant) temp(temporary)' + \
           'Types are: int flt arr and str\n' + \
           'NOTE:\n'+\
           ' -compatible with variable referencing (at <initial_value> argument)'
