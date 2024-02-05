@@ -1,6 +1,6 @@
 from enum import Enum, auto
 import re
-import errors
+from runtime import errors
 
 BODY_PATTERN = re.compile(r"\{(?P<body_content>(?:.|\s)*)}")
 PARAM_PATTERN = re.compile(r"\((?P<param_content>(?:.|\s)*)\)")
@@ -39,6 +39,8 @@ class TokenType(Enum):
                 return 'variable reference'
             case 'UNK':
                 return 'unknown token'
+    def make_value(*token_types):
+        return [TokenType.VARREF] + [t for t in token_types]
 
 class ParseToken:
     def __init__(self,type: TokenType,value: str | list[str]):
@@ -47,6 +49,9 @@ class ParseToken:
 
     def __repr__(self):
         return f"ParseToken:(type:'{self.type.__repr__()}';value:{self.value})"
+
+    def has_specific_value(self, values: set):
+        return values.__contains__(self.value)
 
 def try_get(tokentypes:list[TokenType],position:int,args:list[ParseToken]) -> (ParseToken | None, errors.SCLError):
     #import errors  # avoid circular import

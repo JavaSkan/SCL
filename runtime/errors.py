@@ -109,3 +109,13 @@ class SCLUnknownTypeError(SCLError):
 
     def __init__(self, type_name: str):
         super().__init__(f"Invalid type given called '{type_name}'")
+
+class SCLModifyConstantError(SCLError):
+    """
+    Raised when attempting to modify a constant variable
+    """
+
+    def __init__(self, var_name: str):
+        super().__init__(f"Attempt of modifying a constant called {var_name}")
+
+#TODO Syntax Error

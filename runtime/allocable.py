@@ -1,9 +1,7 @@
 from enum import Enum, auto
 
-from parser import errors as err
-from runtime import ulang as ul
-import env as ev
-
+from runtime import errors as err, env as ev
+from runtime.ulang import execute_block, execute, var_ref_str, is_var_ref
 #TODO create bool type and implement boolean system
 
 #Enums
@@ -35,11 +33,26 @@ class DT_TYPES(Enum):
                 return DT_TYPES.FLT
             case 'str':
                 return DT_TYPES.STR
+
+class VARKIND(Enum):
+    VAR = auto()
+    CONST = auto()
+    TEMP = auto()
+
+    def str_to_varkind(str_kind: str):
+        match str_kind:
+            case "var":
+                return VARKIND.VAR
+            case "const":
+                return VARKIND.CONST
+            case "temp":
+                return VARKIND.TEMP
+
 class Allocable:
 
-    def __init__(self, id:str, value):
+    def __init__(self, ident:str, value):
         self.maddr = None
-        self.id = id
+        self.ident = ident
         self.vl = value
         Allocable.alloc(self,self)
 
@@ -47,25 +60,29 @@ class Allocable:
         return self.maddr
 
     def alloc(cls, allocable):
-        if (dup := ev.get_from_id(allocable.id)) == None:
+        if (dup := ev.get_from_id(allocable.ident)) == None:
             ev._VARS.append(allocable)
             allocable.maddr = ev._VARS.__len__() - 1
         else:
-            print(f"'{allocable.id}' is already defined at address {dup.maddr}")
+            print(f"'{allocable.ident}' is already defined at address {dup.maddr}")
 
     def repr_val(self):
         return f"{self.vl}"
 
 class Variable(Allocable):
 
-    def __init__(self, type:DT_TYPES, id:str, value):
+    #TODO implement variable kind temp
+    def __init__(self, type:DT_TYPES, kind:VARKIND,ident:str, value):
         self.type = type
-        super().__init__(id, value)
+        self.kind = kind
+        super().__init__(ident, value)
 
     def get_value(self):
         return self.vl
 
     def set_value(self,new):
+        if self.kind == VARKIND.CONST:
+            err.SCLModifyConstantError(self.ident).trigger()
         self.vl = new
 
     def is_compatible_with_type(self,str_value:str) -> bool:
@@ -88,16 +105,16 @@ class Variable(Allocable):
 
 
     def __repr__(self):
-        return f"Var<{self.type.__repr__()}>({self.id}:{self.vl})"
+        return f"Var<{self.type.__repr__()}>({self.ident}:{self.vl})"
 
 class Array(Allocable):
 
-    def __init__(self, id:str, vars: list):
-        super().__init__(id, vars)
+    def __init__(self, ident:str, vars: list):
+        super().__init__(ident, vars)
         self.len = len(vars)
 
     def __repr__(self):
-        out = f"Array<{self.id}>:["
+        out = f"Array<{self.ident}>:["
         for i in range(self.len-1):
             out += f"{self.vl[i]},"
         out += f"{self.vl[len(self.vl)-1]}]"
@@ -115,24 +132,24 @@ class Array(Allocable):
 
 class Function(Allocable):
 
-    def __init__(self, id:str, params:list[str] | None, body:list[str]):
+    def __init__(self, ident:str, params:list[str] | None, body:list[str]):
         self.pm = [] if params == None else params
         self.bd = body
         self.locals: list[Variable] = []
         self.ret = None
-        super().__init__(id,self.ret)
+        super().__init__(ident,self.ret)
 
 
     def __repr__(self):
-        return f"Function:('{self.id}':{self.vl})"
+        return f"Function:('{self.ident}':{self.vl})"
 
     def init_params(self):
         for p in self.pm:
-            temp = ul.parse(p)
+            temp = None #TODO parse(p)
             if (alen := len(temp)) == 2:
                 self.locals.append(Variable(DT_TYPES.str_to_type(temp[0]), temp[1], None))
             elif alen == 3:
-                self.locals.append(Variable(DT_TYPES.str_to_type(temp[0]), temp[1], ul.var_ref(temp[2])))
+                self.locals.append(Variable(DT_TYPES.str_to_type(temp[0]), temp[1], var_ref_str(temp[2])))
 
     """
     To set params when the function is called
@@ -141,7 +158,7 @@ class Function(Allocable):
         if (loc_len := len(self.locals)) != (val_len := len(arguments)):
             err.SCLFunArgsMismatchError(loc_len, val_len).trigger()
         for i in range(len(self.locals)):
-            if (arg_var := (ev.get_from_id(arguments[i][1:]) if ul.is_var_ref(arguments[i]) else arguments[i])) == None:
+            if (arg_var := (ev.get_from_id(arguments[i][1:]) if is_var_ref(arguments[i]) else arguments[i])) == None:
                 err.SCLNotFoundError(arguments[i]).trigger()
             if type(arg_var) is str:
                 if self.locals[i].is_compatible_with_type(arg_var):
@@ -156,7 +173,7 @@ class Function(Allocable):
 
     def del_locals(self):
         for l in self.locals:
-            ul.execute(f'del {l.id}')
+            execute(f'del {l.ident}')
 
     def execute_fun(self,arguments: list[str] | None):
         self.init_params()
@@ -164,9 +181,9 @@ class Function(Allocable):
             self.set_params(arguments)
         for ins in self.bd:
             if type(ins) is str:
-                ul.execute(ins)
+                execute(ins)
             else:
-                ul.execute_block(ins)
+                execute_block(ins)
         self.vl = ev._FUN_RET
         self.del_locals()
         ev._FUN_RET = None

@@ -1,14 +1,13 @@
-from parser import errors as terr
-from runtime import allocable as al
+from runtime import allocable as al, errors as err
 
 _VARS = []            #variables
 _BOOL = False         #boolean result
 _FUN_RET = None       #Function return
 _VARREF_SYM = '$'     #Variable reference symbol
 
-def get_from_id(id: str):
+def get_from_id(id_: str):
     for v in _VARS:
-        if v.id == id:
+        if v.ident == id_:
             return v
     return None
 
@@ -20,4 +19,4 @@ def get_value_from_id(id):
         try:
             return var.vl
         except AttributeError:
-            terr.SCLNotFoundError(id).trigger()
+            err.SCLNotFoundError(id).trigger()

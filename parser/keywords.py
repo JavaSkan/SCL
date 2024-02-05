@@ -9,3 +9,9 @@ data_types_keywords = {
     'flt': parsing.TokenType.FLTLIT,
     'str': parsing.TokenType.STRLIT
 }
+
+new_cmd_varkind_kws = {
+    'const',
+    'temp',
+    'var'
+}

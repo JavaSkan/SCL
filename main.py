@@ -1,8 +1,7 @@
-from runtime import env, ulang
+from runtime import ulang
 
 
 def main():
-    env._ERR_QUIT = False
     script = ""
     while True:
         script = input("> ")
