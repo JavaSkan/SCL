@@ -1,7 +1,8 @@
 from enum import Enum, auto
 
 from runtime import errors as err, env as ev
-from runtime.ulang import execute_block, execute, var_ref_str, is_var_ref
+from runtime.ulang import var_ref_str, is_var_ref
+from runtime.execution import execute, execute_block
 #TODO create bool type and implement boolean system
 
 #Enums

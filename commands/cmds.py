@@ -4,6 +4,7 @@ from runtime import errors
 from runtime import allocable as al
 from runtime import env as ev
 from runtime import ulang as ul
+from runtime import execution as exe
 from . import manuals
 
 
@@ -85,7 +86,7 @@ def loop_f(args: list[ps.ParseToken]):
     del body_tok
     for i in range(it):
         for ins in instructions:
-            ul.execute(ins)
+            exe.execute(ins)
 
 
 def new_f(args: list[ps.ParseToken]):
@@ -168,7 +169,7 @@ def execute_f(args):
             with open(args[0],"r") as f:
                 lines = f.read().split("\n")
                 for line in lines:
-                    ul.execute(line)
+                    exe.execute(line)
         else:
             errors.SCLError("Incorrect file extension").trigger()
     else:
