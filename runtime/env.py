@@ -3,7 +3,6 @@ from runtime import allocable as al, errors as err
 _VARS = []            #variables
 _FUN_RET = None       #Function return
 _ERR_CODE = 0         #Error Code
-_VARREF_SYM = '$'     #Variable reference symbol
 
 def alloc(element):
     if not (existing := get_from_id(element.ident)):

@@ -133,7 +133,6 @@ def state_f(args):
     print(f"ALLOCATIONS : {ev._VARS}")
     print(f"ERROR_CODE: {ev._ERR_CODE}")
     print(f"FUNCTION RETURN VALUE : {ev._FUN_RET}")
-    print(f"VARIABLE REFERENCING SYMBOL : {ev._VARREF_SYM}")
 
 def end_f(args):
     status_tok, er = ps.try_get(ps.TokenType.make_value(ps.TokenType.INTLIT),0,args)
@@ -317,14 +316,12 @@ def help_f(args):
             print(manuals.FUN)
         case 'ret':
             print(manuals.RET)
-        case 'vr':
-            print(manuals.VR)
         case 'call':
             print(manuals.CALL)
         case 'read':
             print(manuals.READ)
         case 'list':
-            print("dp, dpl, loop, new, set, stt, end, clr, del, exec, add, sub, mul, div, pow, help, fun, ret, vr, call, read")
+            print("dp, dpl, loop, new, set, stt, end, clr, del, exec, add, sub, mul, div, pow, help, fun, ret, call, read")
         case _:
             return errors.SCLError("Unknown Command, either it does not exist or there is no manual for it")
 
@@ -375,14 +372,6 @@ def ret_f(args):
             ev._FUN_RET = val
     else:
         ev._FUN_RET = vtok.value
-
-def vr_f(args):
-    if args[0] == 'set':
-        ev._VARREF_SYM = args[1]
-    elif args[0] == 'reset':
-        ev._VARREF_SYM = '$'
-    else:
-        errors.SCLError(f'{args[0]} is not a valid argument for this command').trigger()
 
 def read_f(args):
     if (var := ev.get_from_id(args[0])) == None:

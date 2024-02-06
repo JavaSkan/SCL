@@ -71,11 +71,6 @@ RET     = '>>> Returns a value in a function context\n' + \
           ' -When called, it sets the environment variable "_FUN_RET" to the specified value. It means that when called out of function context, it could set the "global return value" of the program running\n'+\
           ' -compatible with variable referencing (at <value> argument)'
 
-VR      = '>>> Changes the default character for variable referencing\n' + \
-          'Syntax: vr set|reset [new_character]\n' + \
-          '<new_character> should be defined if first argument is "set"\n'+ \
-          'By default it\'s "$"'
-
 CALL    = '>>> Calls a function\n' + \
           'Syntax: call <name> [argument(s)]\n' + \
           'NOTE:\n' + \
