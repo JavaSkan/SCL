@@ -285,7 +285,10 @@ def pow_f(args):
     modified_var.set_value(modified_var.get_value() ** modifier_vl)
 
 def help_f(args):
-    match args[0]:
+    cmd_tok, er = ps.try_get([ps.TokenType.ARG],0,args)
+    if er:
+        return er
+    match cmd_tok.value:
         case 'dp':
             print(manuals.DP)
         case 'dpl':
@@ -321,9 +324,9 @@ def help_f(args):
         case 'read':
             print(manuals.READ)
         case 'list':
-            print("dp, dpl, loop, new, set, stt, end, clr, del, exec, add, sub, mu, div, pow, help, fun, ret, vr, call, enable_eq, disable_eq, read")
+            print("dp, dpl, loop, new, set, stt, end, clr, del, exec, add, sub, mu, div, pow, help, fun, ret, vr, call, read")
         case _:
-            errors.SCLError("Unknown Command, either it does not exist or there is no manual for it").trigger()
+            return errors.SCLError("Unknown Command, either it does not exist or there is no manual for it")
 
 def fun_f(args):
     if not ul.is_valid_name(args[0]):
