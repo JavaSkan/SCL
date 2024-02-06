@@ -1,13 +1,13 @@
 from enum import Enum, auto
 import re
 from runtime import errors
-from . import keywords as kws
 
 BODY_PATTERN = re.compile(r"\{(?P<body_content>(?:.|\s)*)}")
 PARAM_PATTERN = re.compile(r"\((?P<param_content>(?:.|\s)*)\)")
 ARR_PATTERN = re.compile(r"\[(?P<arr_content>(?:.|\s)*)]")
 STR_PATTERN = re.compile(r'<(?P<str_content>(?:.|\s)*)>')
 
+#TODO Optional Tokens
 
 class TokenType(Enum):
     ARG      = auto()
@@ -104,7 +104,7 @@ def parse_formal_param(declaration: str):
 def parse(inp_string: str) -> list[ParseToken]:
     #this splits elements with spaces not included in a "block"
     #a block is a scope delimited with { or ( or [ " and their closing versions } ] ) "
-    command_parts = re.split(r" +(?![^{([<]*[\)\}\]>])", inp_string)
+    command_parts = re.split(r" +(?![^{([<]*[\)\}\]>][^{([<])", inp_string)
     tokens = []
     for p in command_parts:
         if BODY_PATTERN.fullmatch(p):

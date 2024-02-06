@@ -163,7 +163,7 @@ class SCLIsNotAFileError(SCLError):
 
 class SCLWrongExtensionError(SCLError):
     """
-    Raised when attempting to execute a SCL file that doesn't have
+    Raised when attempting to execute an SCL file that doesn't have
     the .scl extension
     """
 

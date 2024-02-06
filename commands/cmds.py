@@ -374,10 +374,13 @@ def ret_f(args):
         ev._FUN_RET = vtok.value
 
 def read_f(args):
-    if (var := ev.get_from_id(args[0])) == None:
-        errors.SCLNotFoundError(args[0]).trigger()
-    user_input = input("")
-    if var.is_compatible_with_type(user_input):
-        var.set_value(var.convert_str_value_to_type(user_input))
+    vartok, err = ps.try_get([ps.TokenType.ARG],0,args)
+    if err:
+        return err
+    if not (var := ul.var_ref(vartok.value)):
+        return errors.SCLNotFoundError(vartok.value)
+    usr_input = input()
+    if var.is_compatible_with_type(usr_input):
+        var.set_value(var.convert_str_value_to_type(usr_input))
     else:
-        errors.SCLWrongTypeError(var.type.__repr__()).trigger()
+        return errors.SCLWrongTypeError(var.type.__repr__())

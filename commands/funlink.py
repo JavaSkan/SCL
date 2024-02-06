@@ -18,7 +18,6 @@ cmds = {"dp":	  cmds.display_f,
 		"help":   cmds.help_f,
 		"fun":    cmds.fun_f,
 		"ret":    cmds.ret_f,
-		"vr":  	  cmds.vr_f,
 		"call":	  cmds.call_f,
 		"read":     cmds.read_f
 		}
