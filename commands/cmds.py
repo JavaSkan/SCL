@@ -116,7 +116,12 @@ def new_f(args: list[ps.ParseToken]):
         return getvalueerr
 
     #Creation of the variable
-    al.Variable(al.DT_TYPES.str_to_type(vartype),al.VARKIND.str_to_varkind(varkind),varname,value)
+    ev.alloc(al.Variable(
+         al.VARKIND.str_to_varkind(varkind),
+         al.DT_TYPES.str_to_type(vartype),
+         varname,
+         value)
+    )
 
 
 def state_f(args):
@@ -147,10 +152,19 @@ def end_f(args):
     quit()
 
 def clear_f(args):
+    nea = ps.no_extra_args(args)
+    if nea:
+        return nea
     ev._VARS.clear()
 
 def delete_f(args):
-    ev._VARS.pop(ev._VARS.index(ev.get_from_id(args[0])))
+    ident_tok, er = ps.try_get([ps.TokenType.ARG],0,args)
+    if er:
+        return er
+    if not (var := ul.var_ref(ident_tok.value)):
+        return errors.SCLNotFoundError(ident_tok.value)
+    ev.de_alloc(var)
+
 
 def set_f(args):
     if (var := ev.get_from_id(args[0])) == None:

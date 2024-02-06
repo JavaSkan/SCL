@@ -1,11 +1,7 @@
-import runtime.errors as errors
 from runtime import env
-import parser.parsing as parsing
-
 
 def is_var_ref(id:str) -> bool:
     return id.startswith(env._VARREF_SYM) and len(id) > 1
-
 
 def var_ref(id_: str):
     return env.get_from_id(id_)

@@ -1,5 +1,4 @@
 class SCLError:
-
     def __init__(self,msg:str):
         self.err_msg = msg
 
@@ -104,11 +103,19 @@ class SCLDivisionByZeroError(SCLError):
 
 class SCLUnknownTypeError(SCLError):
     """
-    Raised invalid type is given
+    Raised when invalid type is given
     """
 
     def __init__(self, type_name: str):
         super().__init__(f"Invalid type given called '{type_name}'")
+
+class SCLUnknownKindError(SCLError):
+    """
+    Raised when invalid variable kind is given
+    """
+
+    def __init__(self, kind_name: str):
+        super().__init__(f"Invalid type given called '{kind_name}'")
 
 class SCLModifyConstantError(SCLError):
     """
@@ -117,5 +124,13 @@ class SCLModifyConstantError(SCLError):
 
     def __init__(self, var_name: str):
         super().__init__(f"Attempt of modifying a constant called {var_name}")
+
+class SCLAlreadyExistingError(SCLError):
+    """
+    Raised when attempting to create a variable with a taken identifier
+    """
+
+    def __init__(self,identifier: str,allocable):
+        super().__init__(f"'{identifier}' is already taken: {allocable}")
 
 #TODO Syntax Error

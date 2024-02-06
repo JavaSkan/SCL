@@ -54,7 +54,7 @@ class ParseToken:
         return f"ParseToken:(type:'{self.type.__repr__()}';value:{self.value})"
 
     def has_specific_value(self, values: set):
-        return values.__contains__(self.value)
+        return self.value in values
 
 def try_get(tokentypes:list[TokenType],position:int,args:list[ParseToken]) -> (ParseToken | None, errors.SCLError):
     #import errors  # avoid circular import

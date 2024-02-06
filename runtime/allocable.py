@@ -61,23 +61,16 @@ class VARKIND(Enum):
                 return "cst"
             case VARKIND.TEMP.name:
                 return "tmp"
+
 class Allocable:
 
     def __init__(self, ident:str, value):
         self.maddr = None
         self.ident = ident
         self.vl = value
-        Allocable.alloc(self,self)
 
     def get_mem_addr(self):
         return self.maddr
-
-    def alloc(cls, allocable):
-        if (dup := ev.get_from_id(allocable.ident)) == None:
-            ev._VARS.append(allocable)
-            allocable.maddr = ev._VARS.__len__() - 1
-        else:
-            print(f"'{allocable.ident}' is already defined at address {dup.maddr}")
 
     def repr_val(self):
         return f"{self.vl}"
@@ -85,7 +78,7 @@ class Allocable:
 class Variable(Allocable):
 
     #TODO implement variable kind temp
-    def __init__(self, type:DT_TYPES, kind:VARKIND,ident:str, value):
+    def __init__(self, kind:VARKIND, type:DT_TYPES,ident:str, value):
         self.type = type
         self.kind = kind
         super().__init__(ident, value)
