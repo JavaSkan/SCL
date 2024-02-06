@@ -5,9 +5,6 @@ from runtime.ulang import var_ref_str, is_var_ref
 from runtime.execution import execute, execute_block
 #TODO implement boolean system
 
-#Enums
-COUNT = 0
-
 class DT_TYPES(Enum):
 
     INT  = auto()
@@ -68,12 +65,6 @@ class Allocable:
         self.maddr = None
         self.ident = ident
         self.vl = value
-
-    def get_mem_addr(self):
-        return self.maddr
-
-    def repr_val(self):
-        return f"{self.vl}"
 
 class Variable(Allocable):
 
