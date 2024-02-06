@@ -80,6 +80,8 @@ class VARKIND(Enum):
                 return "cst"
             case VARKIND.TEMP.name:
                 return "tmp"
+            case _:
+                return "unknown varkind"
 
 class Allocable:
 
@@ -183,26 +185,33 @@ class Function(Allocable):
     """
     def set_params(self,arguments: list[str]):
         if len(arguments) != len(self.locals):
-            err.SCLFunArgsMismatchError(len(self.locals),len(arguments)).trigger(note=f"arguments provided: {str(arguments)}")
+            return err.SCLFunArgsMismatchError(len(self.locals),len(arguments))
         for (i,arg) in enumerate(arguments):
             if is_var_ref(arg):
                 if not (var := ev.get_from_id(arg[1:])):
-                    err.SCLNotFoundError(arg[1:])
+                    return err.SCLNotFoundError(arg[1:])
                 if not var.type == self.locals[i].type:
-                    err.SCLWrongTypeError(self.locals[i].type.__repr__())
+                    return err.SCLWrongTypeError(self.locals[i].type.__repr__())
                 self.locals[i].set_value(var.get_value())
             else:
                 if self.locals[i].is_compatible_with_type(arg):
                     self.locals[i].set_value(self.locals[i].convert_str_value_to_type(arg))
+                else:
+                    if arg == '':
+                        return err.SCLError(f"Function argument {i+1} is missing")
+                    return err.SCLWrongTypeError(self.locals[i].type.__repr__(),DT_TYPES.guess_type(arg).__repr__())
+
 
     def del_locals(self):
-        self.locals.clear()
+        for local in self.locals:
+            ev.de_alloc(local)
 
     #arguments are var refs or literals ($x or 0 ...)
     def execute_fun(self,arguments: list[str]):
         self.init_params()
         if self.pm != None:
-            self.set_params(arguments)
+            if (setpmerr:=self.set_params(arguments)):
+                return setpmerr
         for ins in self.bd:
             execute(ins)
         if ev._FUN_RET:

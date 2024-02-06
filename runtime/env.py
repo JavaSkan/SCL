@@ -13,7 +13,7 @@ def alloc(element):
         err.SCLAlreadyExistingError(existing.ident,existing).trigger()
 
 def de_alloc(element):
-    _VARS.pop(element.maddr)
+    _VARS.remove(element)
 
 def get_from_id(id_: str):
     for v in _VARS:
