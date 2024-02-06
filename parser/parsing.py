@@ -105,10 +105,10 @@ def parse(inp_string: str) -> list[ParseToken]:
             tokens.append(ParseToken(TokenType.STRLIT, STR_PATTERN.fullmatch(p).group('str_content')))
         elif (varref := re.fullmatch(r'\$[a-zA-Z_]\w*',p)):
             tokens.append(ParseToken(TokenType.VARREF,varref.group()[1:]))
-        elif (intlit_mat := re.fullmatch(r'\d+',p)):
+        elif (intlit_mat := re.fullmatch(r'-?\d+',p)):
             tokens.append(ParseToken(TokenType.INTLIT, intlit_mat.group()))
             del intlit_mat
-        elif (fltlit_mat := re.fullmatch(r'\d*\.\d+',p)):
+        elif (fltlit_mat := re.fullmatch(r'-?\d*\.\d+',p)):
             tokens.append(ParseToken(TokenType.FLTLIT, fltlit_mat.group()))
             del fltlit_mat
         elif (boollit_mat := re.fullmatch(r'true|false',p)):

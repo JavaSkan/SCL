@@ -5,6 +5,7 @@ from runtime import allocable as al
 from runtime import env as ev
 from runtime import ulang as ul
 from runtime import execution as exe
+from . import operations as oper
 from . import manuals
 
 
@@ -198,137 +199,90 @@ def execute_f(args):
             exe.execute(line)
 
 def add_f(args):
-    if (var1 := ev.get_from_id(args[0])) == None:
-        errors.SCLNotFoundError(args[0]).trigger()
-    var2 = ev.get_from_id(args[1][1:]) if ul.is_var_ref(args[1]) else args[1]
-    if type(var1) is al.Array:
-        var1.add_v(var2)
-        return
-    if type(var2) is str:
-        if var1.is_compatible_with_type(var2):
-            var1.set_value(var1.get_value() + var1.convert_str_value_to_type(var2))
-        else:
-            errors.SCLWrongTypeError(var1.type.__repr__()).trigger()
-    else:
-        if var2 == None:
-            errors.SCLNotFoundError(args[1]).trigger()
-        if var1.is_compatible_with_type(str(var2.get_value())):
-            var1.set_value(var1.get_value() + var2.get_value())
-        else:
-            errors.SCLWrongTypeError(var1.type.__repr__(),var2.type.__repr__()).trigger()
+    modified_tok, er = ps.try_get([ps.TokenType.ARG],0,args)
+    if er:
+        return er
+    if not (modified_var := ev.get_from_id(modified_tok.value)):
+        return errors.SCLNotFoundError(modified_tok.value)
+    if not modified_var.type in oper.datatypes_support_add:
+        return errors.SCLWrongOperationError("addition",modified_var.type.__repr__())
+    modifier_tok, er = ps.try_get(ps.TokenType.make_value(*oper.tokentypes_support_add),1,args)
+    if er:
+        return er
+    modifier_vl, er = var_ref_getvalue(modifier_tok,modified_var.type)
+    if er:
+        return er
+    modified_var.set_value(modified_var.get_value() + modifier_vl)
 
 
 def sub_f(args):
-    if (var1 := ev.get_from_id(args[0])) == None:
-        errors.SCLNotFoundError(args[0]).trigger()
-    var2 = ev.get_from_id(args[1][1:]) if ul.is_var_ref(args[1]) else args[1]
-    if type(var1) is al.Array:
-        errors.SCLWrongOperationError("subtraction","array")
-        return
-    if type(var2) is str:
-        if var1.is_compatible_with_type(var2):
-            if var1.type in (al.DT_TYPES.INT,al.DT_TYPES.FLT):
-                var1.set_value(var1.get_value() - var1.convert_str_value_to_type(var2))
-            else:
-                errors.SCLWrongOperationError("subtraction",var1.type.__repr__()).trigger()
-        else:
-            errors.SCLWrongTypeError(var1.type.__repr__()).trigger()
-    else:
-        if var2 == None:
-            errors.SCLNotFoundError(args[1]).trigger()
-        if var1.is_compatible_with_type(str(var2.get_value())):
-            if var1.type in (al.DT_TYPES.INT, al.DT_TYPES.FLT):
-                var1.set_value(var1.get_value() - var2.get_value())
-            else:
-                errors.SCLWrongOperationError("subtraction", var1.type.__repr__()).trigger()
-        else:
-            errors.SCLWrongTypeError(var1.type.__repr__(),var2.type.__repr__()).trigger()
+    modified_tok, er = ps.try_get([ps.TokenType.ARG], 0, args)
+    if er:
+        return er
+    if not (modified_var := ev.get_from_id(modified_tok.value)):
+        return errors.SCLNotFoundError(modified_tok.value)
+    if not modified_var.type in oper.datatypes_support_sub:
+        return errors.SCLWrongOperationError("subtraction", modified_var.type.__repr__())
+    modifier_tok, er = ps.try_get(ps.TokenType.make_value(*oper.tokentypes_support_sub), 1, args)
+    if er:
+        return er
+    modifier_vl, er = var_ref_getvalue(modifier_tok, modified_var.type)
+    if er:
+        return er
+    modified_var.set_value(modified_var.get_value() - modifier_vl)
 
 def mul_f(args):
-    if (var1 := ev.get_from_id(args[0])) == None:
-        errors.SCLNotFoundError(args[0]).trigger()
-    var2 = ev.get_from_id(args[1][1:]) if ul.is_var_ref(args[1]) else args[1]
-    if type(var1) is al.Array:
-        errors.SCLWrongOperationError("multiplication", "array")
-        return
-    if type(var2) is str:
-        if var1.is_compatible_with_type(var2):
-            if var1.type in (al.DT_TYPES.INT, al.DT_TYPES.FLT):
-                var1.set_value(var1.get_value() * var1.convert_str_value_to_type(var2))
-            else:
-                errors.SCLWrongOperationError("multiplication", var1.type.__repr__()).trigger()
-        else:
-            errors.SCLWrongTypeError(var1.type.__repr__()).trigger()
-    else:
-        if var2 == None:
-            errors.SCLNotFoundError(args[1]).trigger()
-        if var1.is_compatible_with_type(str(var2.get_value())):
-            if var1.type in (al.DT_TYPES.INT, al.DT_TYPES.FLT):
-                var1.set_value(var1.get_value() * var2.get_value())
-            else:
-                errors.SCLWrongOperationError("multiplication", var1.type.__repr__()).trigger()
-        else:
-            errors.SCLWrongTypeError(var1.type.__repr__(), var2.type.__repr__()).trigger()
+    modified_tok, er = ps.try_get([ps.TokenType.ARG], 0, args)
+    if er:
+        return er
+    if not (modified_var := ev.get_from_id(modified_tok.value)):
+        return errors.SCLNotFoundError(modified_tok.value)
+    if not modified_var.type in oper.datatypes_support_mul:
+        return errors.SCLWrongOperationError("multiplication", modified_var.type.__repr__())
+    modifier_tok, er = ps.try_get(ps.TokenType.make_value(*oper.tokentypes_support_mul), 1, args)
+    if er:
+        return er
+    modifier_vl, er = var_ref_getvalue(modifier_tok, modified_var.type)
+    if er:
+        return er
+    modified_var.set_value(modified_var.get_value() * modifier_vl)
 
 def div_f(args):
-    if (var1 := ev.get_from_id(args[0])) == None:
-        errors.SCLNotFoundError(args[0]).trigger()
-    var2 = ev.get_from_id(args[1][1:]) if ul.is_var_ref(args[1]) else args[1]
-    if type(var1) is al.Array:
-        errors.SCLWrongOperationError("division", "array")
-        return
-    if type(var2) is str:
-        if var1.is_compatible_with_type(var2):
-            if float(var2) == 0.0:
-                errors.SCLDivisionByZeroError(var1.id).trigger()
-            if var1.type == al.DT_TYPES.INT:
-                var1.set_value(var1.get_value() // var1.convert_str_value_to_type(var2))
-            elif var1.type == al.DT_TYPES.FLT:
-                var1.set_value(var1.get_value() / var1.convert_str_value_to_type(var2))
-            else:
-                errors.SCLWrongOperationError("division", var1.type.__repr__()).trigger()
-        else:
-            errors.SCLWrongTypeError(var1.type.__repr__()).trigger()
+    modified_tok, er = ps.try_get([ps.TokenType.ARG], 0, args)
+    if er:
+        return er
+    if not (modified_var := ev.get_from_id(modified_tok.value)):
+        return errors.SCLNotFoundError(modified_tok.value)
+    if not modified_var.type in oper.datatypes_support_div:
+        return errors.SCLWrongOperationError("division", modified_var.type.__repr__())
+    modifier_tok, er = ps.try_get(ps.TokenType.make_value(*oper.tokentypes_support_div), 1, args)
+    if er:
+        return er
+    modifier_vl, er = var_ref_getvalue(modifier_tok, modified_var.type)
+    if er:
+        return er
+    if modifier_vl == 0:
+        return errors.SCLDivisionByZeroError(modified_var.ident)
+    if modified_var.type == al.DT_TYPES.INT:
+        modified_var.set_value(modified_var.get_value() // modifier_vl)
     else:
-        if var2 == None:
-            errors.SCLNotFoundError(args[1]).trigger()
-        if var1.is_compatible_with_type(str(var2.get_value())):
-            if var2.get_value() == 0.0:
-                errors.SCLDivisionByZeroError(var1.id).trigger()
-            if var1.type == al.DT_TYPES.INT:
-                var1.set_value(var1.get_value() // var2.get_value())
-            elif var1.type == al.DT_TYPES.FLT:
-                var1.set_value(var1.get_value() / var2.get_value())
-            else:
-                errors.SCLWrongOperationError("division", var1.type.__repr__()).trigger()
-        else:
-            errors.SCLWrongTypeError(var1.type.__repr__(), var2.type.__repr__()).trigger()
+        modified_var.set_value(modified_var.get_value() / modifier_vl)
 
 def pow_f(args):
-    if (var1 := ev.get_from_id(args[0])) == None:
-        errors.SCLNotFoundError(args[0]).trigger()
-    var2 = ev.get_from_id(args[1][1:]) if ul.is_var_ref(args[1]) else args[1]
-    if type(var1) is al.Array:
-        errors.SCLWrongOperationError("power", "array")
-        return
-    if type(var2) is str:
-        if var1.is_compatible_with_type(var2):
-            if var1.type in (al.DT_TYPES.INT, al.DT_TYPES.FLT):
-                var1.set_value(var1.get_value() ** var1.convert_str_value_to_type(var2))
-            else:
-                errors.SCLWrongOperationError("power", var1.type.__repr__()).trigger()
-        else:
-            errors.SCLWrongTypeError(var1.type.__repr__()).trigger()
-    else:
-        if var2 == None:
-            errors.SCLNotFoundError(args[1]).trigger()
-        if var1.is_compatible_with_type(str(var2.get_value())):
-            if var1.type in (al.DT_TYPES.INT, al.DT_TYPES.FLT):
-                var1.set_value(var1.get_value() ** var2.get_value())
-            else:
-                errors.SCLWrongOperationError("power", var1.type.__repr__()).trigger()
-        else:
-            errors.SCLWrongTypeError(var1.type.__repr__(), var2.type.__repr__()).trigger()
+    modified_tok, er = ps.try_get([ps.TokenType.ARG], 0, args)
+    if er:
+        return er
+    if not (modified_var := ev.get_from_id(modified_tok.value)):
+        return errors.SCLNotFoundError(modified_tok.value)
+    if not modified_var.type in oper.datatypes_support_pow:
+        return errors.SCLWrongOperationError("power", modified_var.type.__repr__())
+    modifier_tok, er = ps.try_get(ps.TokenType.make_value(*oper.tokentypes_support_pow), 1, args)
+    if er:
+        return er
+    modifier_vl, er = var_ref_getvalue(modifier_tok, modified_var.type)
+    if er:
+        return er
+    modified_var.set_value(modified_var.get_value() ** modifier_vl)
 
 def help_f(args):
     match args[0]:
