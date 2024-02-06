@@ -100,7 +100,7 @@ def new_f(args: list[ps.ParseToken]):
     if er:
         return er
     if not vartype_tok.has_specific_value(kws.data_types_keywords):
-        return errors.SCLError(f"Syntax Error: expected argument with specific value in {kws.new_cmd_varkind_kws}, got {varkind_tok.value}")
+        return errors.SCLError(f"Syntax Error: expected argument with specific value in {kws.data_types_keywords}, got {varkind_tok.value}")
     vartype: str = vartype_tok.value
 
     varname_tok,er = ps.try_get([ps.TokenType.ARG],2,args)
@@ -324,23 +324,57 @@ def help_f(args):
         case 'read':
             print(manuals.READ)
         case 'list':
-            print("dp, dpl, loop, new, set, stt, end, clr, del, exec, add, sub, mu, div, pow, help, fun, ret, vr, call, read")
+            print("dp, dpl, loop, new, set, stt, end, clr, del, exec, add, sub, mul, div, pow, help, fun, ret, vr, call, read")
         case _:
             return errors.SCLError("Unknown Command, either it does not exist or there is no manual for it")
 
 def fun_f(args):
-    if not ul.is_valid_name(args[0]):
-        errors.SCLInvalidNameError(args[0]).trigger()
+    type_tok, err = ps.try_get([ps.TokenType.ARG],0,args)
+    if err:
+        return err
+    if not type_tok.has_specific_value(kws.data_types_keywords):
+        return errors.SCLError(f"Syntax Error: expected argument with specific value in {kws.data_types_keywords}, got {type_tok.value}")
+    ftype: al.DT_TYPES = al.DT_TYPES.str_to_type(type_tok.value)
+    name_tok, err = ps.try_get([ps.TokenType.ARG],1,args)
+    if err:
+        return name_tok
+    name :str = name_tok.value
+    params_tok, err = ps.try_get([ps.TokenType.PARAM],2,args)
+    if err:
+        return err
+    params = ps.parse_param(params_tok.value)
+    if err:
+        return err
+    body_tok, err = ps.try_get([ps.TokenType.BODY],3,args)
+    if err:
+        return err
+    body = ps.parse_body(body_tok.value)
+    ev.alloc(al.Function(ftype,name,params,body))
 
-    #fun <name> {body}
-    if (alen := len(args)) == 2:
-        al.Function(args[0],None,ul.parse_body(args[1]))
-    #fun <name> (params) {body}
-    elif alen == 3:
-        al.Function(args[0],ul.parse_params(args[1]),ul.parse_body(args[2]))
+def call_f(args):
+    name_tok, err = ps.try_get([ps.TokenType.ARG],0,args)
+    if err:
+        return err
+    if not (fun := ev.get_from_id(name_tok.value)):
+        return errors.SCLNotFoundError(name_tok.value)
+    if not type(fun) is al.Function:
+        return errors.SCLNotCallableError(name_tok.value)
+    effective_params_tok, err = ps.try_get([ps.TokenType.PARAM],1,args)
+    if err:
+        return err
+    eff_params: list[str] = ps.parse_param(effective_params_tok.value)
+    return fun.execute_fun(eff_params)
+
 
 def ret_f(args):
-    ev._FUN_RET = ul.var_ref_str(args[0])
+    vtok, err = ps.try_get(ps.TokenType.make_value(*ps.all_literals()),0,args)
+    if err:
+        return err
+    if vtok.type == ps.TokenType.VARREF:
+        if (val := ul.var_ref_str(vtok.value)):
+            ev._FUN_RET = val
+    else:
+        ev._FUN_RET = vtok.value
 
 def vr_f(args):
     if args[0] == 'set':
@@ -349,13 +383,6 @@ def vr_f(args):
         ev._VARREF_SYM = '$'
     else:
         errors.SCLError(f'{args[0]} is not a valid argument for this command').trigger()
-
-def call_f(args):
-    if (fun := ev.get_from_id(args[0])) == None:
-        errors.SCLNotFoundError(args[0]).trigger()
-    if type(fun) is not al.Function:
-        errors.SCLNotCallableError(args[0]).trigger()
-    fun.execute_fun(args[1:])
 
 def read_f(args):
     if (var := ev.get_from_id(args[0])) == None:

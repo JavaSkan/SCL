@@ -57,12 +57,12 @@ HELP    = '>>> Helps you with commands, seriously what did you expect ?\n' + \
           'Typing "help list" shows you all manuals available'
 
 FUN     = '>>> Defines a function\n' + \
-          'Syntax: fun <name> [(params)] {body}\n' + \
-          'params are defined as: <type> <name> [value (optional)]\n'+\
-          'params are also compatible with variable referencing (at [value])\n'+\
+          'Syntax: fun <type> <name> (params) {body}\n' + \
+          'params are defined as: <type> <name>\n'+\
           'NOTE:\n'+\
           ' -before calling a function, its value is null (or None). if you want the function to return something use ret function inside its body and then call it to set its value\n' + \
           ' -The function will keep its previous value until recalling it, and variables created in its content will remain after exiting its execution unlike parameters which are deleted\n' + \
+          ' -If ret is not called or not found, the function value will be set to a default value to avoid errors, for integers and floats it\'s 0, for booleans it\'s true, and strings it\'s ""\n' + \
           ' -For more information about ret command, type "help ret"'
 
 RET     = '>>> Returns a value in a function context\n' + \

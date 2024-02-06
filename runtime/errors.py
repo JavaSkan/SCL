@@ -8,7 +8,7 @@ class SCLError:
             print(f'line: "{line}"')
         print(f"ERROR: {self.err_msg}")
         if note != "":
-            print(f"NOTE:{note}")
+            print(f"NOTE: {note}")
         print("\033[0m",end="")
         quit()
         # if env._ERR_QUIT:
@@ -56,8 +56,8 @@ class SCLNotCallableError(SCLError):
     """
     Raised when attempting to call a non-callable object
     """
-    def __init__(self,id:str) -> None:
-        self.msg = f"Element '{id}' cannot be called"
+    def __init__(self,id_:str) -> None:
+        self.msg = f"Element '{id_}' cannot be called"
         super().__init__(self.msg)
 
 class SCLInvalidNameError(SCLError):
@@ -81,6 +81,18 @@ class SCLWrongTypeError(SCLError):
         else:
             self.msg += f"value for this operation must be '{type_o}'"
         super().__init__(self.msg)
+
+class SCLWrongReturnTypeError(SCLError):
+    """
+    to the type of the called function
+    funname : function name/identifier
+    ftype: the type of the function
+    fprovided: value's type provided
+    Raised when attempting to return a type whose type is not corresponding
+    """
+
+    def __init__(self,funname:str,ftype:str,fprovided:str):
+        super().__init__(f"Function '{funname}' of type '{ftype}' tried to return '{fprovided}'")
 
 class SCLWrongOperationError(SCLError):
     """

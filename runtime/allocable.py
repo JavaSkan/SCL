@@ -3,6 +3,7 @@ from enum import Enum, auto
 from runtime import errors as err, env as ev
 from runtime.ulang import var_ref_str, is_var_ref
 from runtime.execution import execute, execute_block
+from parser.parsing import parse_formal_param
 #TODO implement boolean system
 
 class DT_TYPES(Enum):
@@ -37,6 +38,27 @@ class DT_TYPES(Enum):
             case 'bool':
                 return DT_TYPES.BOOL
 
+    def guess_type(str_value: str):
+        if str_value.isdigit():
+            return DT_TYPES.INT
+        elif str_value.replace('.','',1).isdigit():
+            return DT_TYPES.FLT
+        elif str_value == 'true' or str_value == 'false':
+            return DT_TYPES.BOOL
+        else:
+            return DT_TYPES.STR
+
+    def default_value(self):
+        match self:
+            case DT_TYPES.INT:
+                return 0
+            case DT_TYPES.FLT:
+                return 0.0
+            case DT_TYPES.BOOL:
+                return True
+            case DT_TYPES.STR:
+                return ''
+
 class VARKIND(Enum):
     MUT = auto()
     CONST = auto()
@@ -61,8 +83,9 @@ class VARKIND(Enum):
 
 class Allocable:
 
-    def __init__(self, ident:str, value):
+    def __init__(self, type: DT_TYPES, ident:str, value):
         self.maddr = None
+        self.type = type
         self.ident = ident
         self.vl = value
 
@@ -71,22 +94,6 @@ class Allocable:
 
     def set_value(self,new):
         self.vl = new
-
-class Variable(Allocable):
-
-    #TODO implement variable kind temp
-    def __init__(self, kind:VARKIND, type:DT_TYPES,ident:str, value):
-        self.type = type
-        self.kind = kind
-        super().__init__(ident, value)
-
-    def get_value(self):
-        return super().get_value()
-
-    def set_value(self,new):
-        if self.kind == VARKIND.CONST:
-            err.SCLModifyConstantError(self.ident).trigger()
-        super().set_value(new)
 
     def is_compatible_with_type(self,str_value:str) -> bool:
         match self.type:
@@ -110,14 +117,29 @@ class Variable(Allocable):
             case DT_TYPES.BOOL:
                 return str_value == 'true'
 
+class Variable(Allocable):
+
+    #TODO implement variable kind temp
+    def __init__(self, kind:VARKIND, type:DT_TYPES,ident:str, value):
+        self.kind = kind
+        super().__init__(type, ident, value)
+
+    def get_value(self):
+        return super().get_value()
+
+    def set_value(self,new):
+        if self.kind == VARKIND.CONST:
+            err.SCLModifyConstantError(self.ident).trigger()
+        super().set_value(new)
+
 
     def __repr__(self):
         return f"Var<{self.kind.__repr__()} {self.type.__repr__()}>({self.ident}:{self.vl})"
 
 class Array(Allocable):
 
-    def __init__(self, ident:str, vars: list):
-        super().__init__(ident, vars)
+    def __init__(self, type: DT_TYPES,ident:str, vars: list):
+        super().__init__(type, ident, vars)
         self.len = len(vars)
 
     def __repr__(self):
@@ -139,12 +161,12 @@ class Array(Allocable):
 
 class Function(Allocable):
 
-    def __init__(self, ident:str, params:list[str] | None, body:list[str]):
+    def __init__(self, type:DT_TYPES,ident:str, params:list[str] | None, body:list[str]):
         self.pm = [] if params == None else params
         self.bd = body
-        self.locals: list[Variable] = []
+        self.locals = []
         self.ret = None
-        super().__init__(ident,self.ret)
+        super().__init__(type, ident, self.ret)
 
 
     def __repr__(self):
@@ -152,45 +174,43 @@ class Function(Allocable):
 
     def init_params(self):
         for p in self.pm:
-            temp = None #TODO parse(p)
-            if (alen := len(temp)) == 2:
-                self.locals.append(Variable(DT_TYPES.str_to_type(temp[0]), temp[1], None))
-            elif alen == 3:
-                self.locals.append(Variable(DT_TYPES.str_to_type(temp[0]), temp[1], var_ref_str(temp[2])))
+            type,name = parse_formal_param(p)
+            self.locals.append(Variable(VARKIND.MUT,DT_TYPES.str_to_type(type),name,None))
+            ev.alloc(self.locals[len(self.locals)-1])
 
     """
     To set params when the function is called
     """
     def set_params(self,arguments: list[str]):
-        if (loc_len := len(self.locals)) != (val_len := len(arguments)):
-            err.SCLFunArgsMismatchError(loc_len, val_len).trigger()
-        for i in range(len(self.locals)):
-            if (arg_var := (ev.get_from_id(arguments[i][1:]) if is_var_ref(arguments[i]) else arguments[i])) == None:
-                err.SCLNotFoundError(arguments[i]).trigger()
-            if type(arg_var) is str:
-                if self.locals[i].is_compatible_with_type(arg_var):
-                    self.locals[i].set_value(self.locals[i].convert_str_value_to_type(arg_var))
-                else:
-                    err.SCLWrongTypeError(self.locals[i].type.__repr__()).trigger()
+        if len(arguments) != len(self.locals):
+            err.SCLFunArgsMismatchError(len(self.locals),len(arguments)).trigger(note=f"arguments provided: {str(arguments)}")
+        for (i,arg) in enumerate(arguments):
+            if is_var_ref(arg):
+                if not (var := ev.get_from_id(arg[1:])):
+                    err.SCLNotFoundError(arg[1:])
+                if not var.type == self.locals[i].type:
+                    err.SCLWrongTypeError(self.locals[i].type.__repr__())
+                self.locals[i].set_value(var.get_value())
             else:
-                if self.locals[i].is_compatible_with_type(str(arg_var.get_value())):
-                    self.locals[i].set_value(arg_var.get_value())
-                else:
-                    err.SCLWrongTypeError(self.locals[i].type.__repr__(),arg_var.type.__repr__()).trigger()
+                if self.locals[i].is_compatible_with_type(arg):
+                    self.locals[i].set_value(self.locals[i].convert_str_value_to_type(arg))
 
     def del_locals(self):
-        for l in self.locals:
-            execute(f'del {l.ident}')
+        self.locals.clear()
 
-    def execute_fun(self,arguments: list[str] | None):
+    #arguments are var refs or literals ($x or 0 ...)
+    def execute_fun(self,arguments: list[str]):
         self.init_params()
         if self.pm != None:
             self.set_params(arguments)
         for ins in self.bd:
-            if type(ins) is str:
-                execute(ins)
+            execute(ins)
+        if ev._FUN_RET:
+            if self.is_compatible_with_type(ev._FUN_RET):
+                self.set_value(self.convert_str_value_to_type(ev._FUN_RET))
             else:
-                execute_block(ins)
-        self.vl = ev._FUN_RET
+                return err.SCLWrongReturnTypeError(self.ident,self.type.__repr__(),DT_TYPES.guess_type(ev._FUN_RET).__repr__())
+        else:
+            self.set_value(self.type.default_value())
         self.del_locals()
         ev._FUN_RET = None

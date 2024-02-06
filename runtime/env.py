@@ -10,7 +10,7 @@ def alloc(element):
         element.maddr = len(_VARS)-1
         _VARS.append(element)
     else:
-        err.SCLAlreadyExistingError(element.ident,element).trigger()
+        err.SCLAlreadyExistingError(existing.ident,existing).trigger()
 
 def de_alloc(element):
     _VARS.pop(element.maddr)

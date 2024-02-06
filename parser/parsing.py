@@ -1,6 +1,7 @@
 from enum import Enum, auto
 import re
 from runtime import errors
+from . import keywords as kws
 
 BODY_PATTERN = re.compile(r"\{(?P<body_content>(?:.|\s)*)}")
 PARAM_PATTERN = re.compile(r"\((?P<param_content>(?:.|\s)*)\)")
@@ -88,6 +89,17 @@ def parse_param(content: str, separator=',') -> list[str]:
 def parse_array(content: str, separator=',') -> list[str]:
     return re.split(f' *{separator} *',content)
 
+def parse_formal_param(declaration: str):
+    dec_parsed = parse(declaration)
+    type_tok, err = try_get([TokenType.ARG],0,dec_parsed)
+    if err:
+        err.trigger()
+    type: str = type_tok.value
+    pname_tok, err = try_get([TokenType.ARG],1,dec_parsed)
+    if err:
+        err.trigger()
+    pname: str = pname_tok.value
+    return type,pname
 
 def parse(inp_string: str) -> list[ParseToken]:
     #this splits elements with spaces not included in a "block"
