@@ -41,8 +41,11 @@ CLR     = '>>> Clears the environment (Allocations)\n' + \
 DEL     = '>>> Deletes a variable\n' + \
           'Syntax: del <name>'
 
-EXEC    = '>>> Executes TUI script\n' + \
-          'Syntax: exec <file_name_with_extension>'
+EXEC    = '>>> Executes SCl script\n' + \
+          'Syntax: exec <file_name_with_extension>'+ \
+          'NOTE:\n' + \
+          ' -compatible with variable referencing (at <file_name_with_extension> argument)' + \
+          ' -<file_name_with_extension> should be a string literal'
 
 OPERTS  = '>>> Performs the wanted operation\n' + \
           'Syntax: add|sub|mul|div|pow <name> <value>\n' + \

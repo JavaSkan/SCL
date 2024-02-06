@@ -133,4 +133,28 @@ class SCLAlreadyExistingError(SCLError):
     def __init__(self,identifier: str,allocable):
         super().__init__(f"'{identifier}' is already taken: {allocable}")
 
+class SCLNotExistingPathError(SCLError):
+    """
+    Raised when a path is invalid
+    """
+
+    def __init__(self, path: str):
+        super().__init__(f"'{path}' is an invalid path or does not exist")
+
+class SCLIsNotAFileError(SCLError):
+    """
+    Raised when attempting to interact with an object other than a file
+    """
+
+    def __init__(self,path: str):
+        super().__init__(f"'{path}' is not a file")
+
+class SCLWrongExtensionError(SCLError):
+    """
+    Raised when attempting to execute a SCL file that doesn't have
+    the .scl extension
+    """
+
+    def __init__(self, filename: str):
+        super().__init__(f"'{filename}' doesn't have the correct extension '.scl'")
 #TODO Syntax Error

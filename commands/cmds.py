@@ -71,6 +71,7 @@ def displayl_f(args: list[ps.ParseToken]):
 
 
 def loop_f(args: list[ps.ParseToken]):
+    #TODO make loop accept bool value as an argmument
     it_tok, er = ps.try_get(ps.TokenType.make_value(ps.TokenType.INTLIT),0,args)
     if er:
         return er
@@ -181,16 +182,20 @@ def set_f(args):
     var.set_value(new_v)
 
 def execute_f(args):
-    if os.path.exists(args[0]):
-        if args[0].endswith(".scl"):
-            with open(args[0],"r") as f:
-                lines = f.read().split("\n")
-                for line in lines:
-                    exe.execute(line)
-        else:
-            errors.SCLError("Incorrect file extension").trigger()
-    else:
-        errors.SCLError("There is not such file").trigger()
+    path_tok, er = ps.try_get(ps.TokenType.make_value(ps.TokenType.STRLIT),0,args)
+    if er:
+        return er
+    path: str = path_tok.value
+    if not os.path.exists(path):
+        return errors.SCLNotExistingPathError(path)
+    if not os.path.isfile(path):
+        return errors.SCLIsNotAFileError(path)
+    if not path.endswith('.scl'):
+        return errors.SCLWrongExtensionError(path)
+    with open(path,'r') as script:
+        lines = script.read().split('\n')
+        for line in lines:
+            exe.execute(line)
 
 def add_f(args):
     if (var1 := ev.get_from_id(args[0])) == None:
