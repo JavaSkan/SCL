@@ -45,6 +45,9 @@ class TokenType(Enum):
     def make_value(*token_types):
         return [TokenType.VARREF] + [t for t in token_types]
 
+def all_literals():
+    return (TokenType.INTLIT,TokenType.FLTLIT,TokenType.STRLIT,TokenType.BOOLLIT)
+
 class ParseToken:
     def __init__(self,type: TokenType,value: str | list[str]):
         self.type = type

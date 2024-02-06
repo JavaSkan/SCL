@@ -108,7 +108,7 @@ def new_f(args: list[ps.ParseToken]):
         return errors.SCLInvalidNameError(varname_tok.value)
     varname: str = varname_tok.value
 
-    value_tok, er = ps.try_get(ps.TokenType.make_value(ps.TokenType.INTLIT,ps.TokenType.FLTLIT,ps.TokenType.STRLIT,ps.TokenType.BOOLLIT),3,args)
+    value_tok, er = ps.try_get(ps.TokenType.make_value(*ps.all_literals()),3,args)
     if er:
         return er
     value, getvalueerr = var_ref_getvalue(value_tok,al.DT_TYPES.str_to_type(vartype))
@@ -167,19 +167,18 @@ def delete_f(args):
 
 
 def set_f(args):
-    if (var := ev.get_from_id(args[0])) == None:
-        errors.SCLNotFoundError(args[0]).trigger()
-    new = ev.get_from_id(args[1][1:]) if ul.is_var_ref(args[1]) else args[1]
-    if type(new) is str:
-        if var.is_compatible_with_type(new):
-            var.set_value(var.convert_str_value_to_type(new))
-        else:
-            errors.SCLWrongTypeError(var.type.__repr__()).trigger()
-    else:
-        if var.type == new.type:
-            var.set_value(new.get_value())
-        else:
-            errors.SCLWrongTypeError(var.type.__repr__(),new.type.__repr__()).trigger()
+    ident_tok, er = ps.try_get([ps.TokenType.ARG],0,args)
+    if er:
+        return er
+    if not (var := ul.var_ref(ident_tok.value)):
+        return errors.SCLNotFoundError(ident_tok.value)
+    new_v_tok, er = ps.try_get(ps.TokenType.make_value(*ps.all_literals()),1,args)
+    if er:
+        return er
+    new_v, er = var_ref_getvalue(new_v_tok,var.type)
+    if er:
+        return er
+    var.set_value(new_v)
 
 def execute_f(args):
     if os.path.exists(args[0]):

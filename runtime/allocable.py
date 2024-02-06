@@ -66,6 +66,12 @@ class Allocable:
         self.ident = ident
         self.vl = value
 
+    def get_value(self):
+        return self.vl
+
+    def set_value(self,new):
+        self.vl = new
+
 class Variable(Allocable):
 
     #TODO implement variable kind temp
@@ -75,12 +81,12 @@ class Variable(Allocable):
         super().__init__(ident, value)
 
     def get_value(self):
-        return self.vl
+        return super().get_value()
 
     def set_value(self,new):
         if self.kind == VARKIND.CONST:
             err.SCLModifyConstantError(self.ident).trigger()
-        self.vl = new
+        super().set_value(new)
 
     def is_compatible_with_type(self,str_value:str) -> bool:
         match self.type:

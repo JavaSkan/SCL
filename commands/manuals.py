@@ -35,7 +35,7 @@ END     = '>>> Ends the program\n' + \
           'NOTE:\n'+\
           ' -compatible with variable referencing with both arguments'
 
-CLR     = '>>> Clears the environment\n' + \
+CLR     = '>>> Clears the environment (Allocations)\n' + \
           'Syntax: clr'
 
 DEL     = '>>> Deletes a variable\n' + \

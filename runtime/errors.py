@@ -123,7 +123,7 @@ class SCLModifyConstantError(SCLError):
     """
 
     def __init__(self, var_name: str):
-        super().__init__(f"Attempt of modifying a constant called {var_name}")
+        super().__init__(f"Attempt of modifying a constant called '{var_name}'")
 
 class SCLAlreadyExistingError(SCLError):
     """
