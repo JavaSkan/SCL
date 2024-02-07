@@ -55,7 +55,7 @@ class ParseToken:
         self.value = value
 
     def __repr__(self):
-        return f"ParseToken:(type:'{self.type.__repr__()}';value:{self.value})"
+        return f"ParseToken:(type:'{self.type.__repr__()}';value:'{self.value}')"
 
     def has_specific_value(self, values: set):
         return self.value in values
@@ -103,8 +103,8 @@ def parse_formal_param(declaration: str):
 
 def parse(inp_string: str) -> list[ParseToken]:
     #this splits elements with spaces not included in a "block"
-    #a block is a scope delimited with { or ( or [ " and their closing versions } ] ) "
-    command_parts = re.split(r" +(?![^{([<]*[\)\}\]>][^{([<])", inp_string)
+    #a block is a scope delimited with { or ( or [ or < and their closing versions } ] ) >"
+    command_parts = re.split(r" +(?![^\{\(\[<]*[\)\}\]>])", inp_string)
     tokens = []
     for p in command_parts:
         if BODY_PATTERN.fullmatch(p):

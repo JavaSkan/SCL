@@ -1,7 +1,9 @@
 DP =      '>>> Displays something on the screen\n'+ \
           'Syntax: dp <string of characters>\n' + \
           'NOTE:\n'+\
-          ' -compatible with variable referencing'
+          ' -compatible with variable referencing anywhere\n' + \
+          ' -To avoid problems with parsing, if you want to display a string of chars containing } ] ) or >, wrap it in a string expression like:\n' + \
+          '"dpl Hello World :<)>" or you can do <dpl Hello World :)>'
 
 DPL =     '>>> Displays something on the screen (like cmd dp) but with an additional end-line\n'+ \
           'Syntax: dpl <string of characters>\n' + \
