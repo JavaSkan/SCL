@@ -2,7 +2,6 @@
 Definition of SCL KeyWords
 """
 
-#TODO add bool
 data_types_keywords = {
     'int',
     'flt',
