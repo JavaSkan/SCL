@@ -72,20 +72,25 @@ def displayl_f(args: list[ps.ParseToken]):
 
 
 def loop_f(args: list[ps.ParseToken]):
-    #TODO make loop accept bool value as an argmument
-    it_tok, er = ps.try_get(ps.TokenType.make_value(ps.TokenType.INTLIT),0,args)
+    it_tok, er = ps.try_get(ps.TokenType.make_value(ps.TokenType.INTLIT,ps.TokenType.BOOLLIT),0,args)
     if er:
         return er
-    it, er = var_ref_getvalue(it_tok,al.DT_TYPES.INT)
-    if er:
-        return er
+    it_int, er_intlit = var_ref_getvalue(it_tok,al.DT_TYPES.INT)
+    it_bool, er_boollit = var_ref_getvalue(it_tok,al.DT_TYPES.BOOL)
+    if er_intlit and er_boollit:
+        return errors.SCLError("Expected either a boolean or an integer at position 2")
     body_tok, ers = ps.try_get([ps.TokenType.BODY],1,args)
-    if er:
-        return er
+    if ers:
+        return ers
     instructions = ps.parse_body(body_tok.value)
-    for i in range(it):
-        for ins in instructions:
-            exe.execute(ins)
+    if not er_intlit:
+        for i in range(it_int):
+            for ins in instructions:
+                exe.execute(ins)
+    else:
+        while var_ref_getvalue(it_tok,al.DT_TYPES.BOOL)[0]:
+            for ins in instructions:
+                exe.execute(ins)
 
 
 def new_f(args: list[ps.ParseToken]):

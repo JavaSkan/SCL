@@ -2,7 +2,7 @@ DP =      '>>> Displays something on the screen\n'+ \
           'Syntax: dp <string of characters>\n' + \
           'NOTE:\n'+\
           ' -compatible with variable referencing anywhere\n' + \
-          ' -To avoid problems with parsing, if you want to display a string of chars containing } ] ) or >, wrap it in a string expression like:\n' + \
+          ' -to avoid problems with parsing, if you want to display a string of chars containing } ] ) or >, wrap it in a string expression like:\n' + \
           '"dpl Hello World :<)>" or you can do <dpl Hello World :)>'
 
 DPL =     '>>> Displays something on the screen (like cmd dp) but with an additional end-line\n'+ \
@@ -11,9 +11,11 @@ DPL =     '>>> Displays something on the screen (like cmd dp) but with an additi
           ' -compatible with variable referencing'
 
 LOOP    = '>>> Repeats a set of instructions\n' + \
-          'Syntax: loop <count> {body}\n' + \
+          'Syntax: loop <value> {body}\n' + \
           'NOTE:\n'+\
-          ' -compatible with variable referencing (at <count> argument)'
+          ' -compatible with variable referencing (at <value> argument)\n' + \
+          ' -when an integer is given as <value>, the loop acts like a for loop\n' + \
+          ' -when a boolean is given as <value>, the loop acts like a while loop'
 
 NEW     = '>>> Creates a new variable\n' + \
           'Syntax: new <kind> <type> <name> <initial_value>\n' + \
