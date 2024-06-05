@@ -5,13 +5,6 @@ from .indexed import Indexed
 def make_value(*token_types):
     return [TokenType.VARRF] + [t for t in token_types]
 
-def all_literals():
-    return {
-        TokenType.INT,
-        TokenType.FLT,
-        TokenType.STR,
-        TokenType.BOOL
-    }
 
 @dangerous(note="[PARSING] TOKEN MISMATCH")
 def try_get(tokentypes:list[TokenType], position:int, args:list[Token]) -> (Token | None, errors.SCLError):

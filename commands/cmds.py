@@ -1,4 +1,6 @@
 import os
+
+import parser.tokens
 from parser import parsing as ps, keywords as kws
 from runtime import errors
 from runtime.errors import dangerous
@@ -6,7 +8,6 @@ from runtime import allocable as al
 from runtime import env as ev
 from runtime import ulang as ul
 from runtime import execution as exe
-from runtime.execution import SCL_LEXER, SCL_PARSER
 from . import operations as oper
 from . import manuals
 
@@ -87,7 +88,7 @@ def new_f(args: list[ps.Token]):
         return errors.SCLInvalidNameError(varname_tok.value)
     varname: str = varname_tok.value
 
-    value_tok = ps.try_get(ps.make_value(*ps.all_literals()),3,args)
+    value_tok = ps.try_get(ps.make_value(*parser.tokens.all_literals()), 3, args)
     if (value := safe_getv(value_tok, al.DT_TYPES.str_to_type(vartype))) == None:
         return errors.SCLWrongTypeError(vartype,al.DT_TYPES.guess_type(value_tok.value).__repr__())
     #TODO Fix usage of var_ref_getvalue() in all commands
@@ -138,13 +139,13 @@ def set_f(args):
     if not (var := ul.var_ref(ident_tok.value)):
         return errors.SCLNotFoundError(ident_tok.value)
 
-    new_v_tok = ps.try_get(ps.make_value(*ps.all_literals()),1,args)
+    new_v_tok = ps.try_get(ps.make_value(*parser.tokens.all_literals()), 1, args)
     if (new_v := safe_getv(new_v_tok, var.type)) == None:
-        return errors.SCLError(f"Expected argument of type '{var.type}' at position ")
+        return errors.SCLError(f"Expected argument of type '{var.type.__repr__()}' at position ")
     var.set_value(new_v)
 
 def execute_f(args):
-    path_tok = ps.try_get(ps.make_value(ps.TokenType.STRLIT),0,args)
+    path_tok = ps.try_get(ps.make_value(ps.TokenType.STR),0,args)
 
     path: str = path_tok.value
     if not os.path.exists(path):
@@ -167,8 +168,8 @@ def add_f(args):
         return errors.SCLWrongOperationError("addition",modified_var.type.__repr__())
     modifier_tok = ps.try_get(ps.make_value(*oper.tokentypes_support_add),1,args)
 
-    if (modifier_vl := safe_getv(modifier_tok, modified_var.type)):
-        return errors.SCLError(f"Expected argument of type '{modified_var.type}' at position ")
+    if (modifier_vl := safe_getv(modifier_tok, modified_var.type)) == None:
+        return errors.SCLError(f"Expected argument of type '{modified_var.type}' at position 3")
     modified_var.set_value(modified_var.get_value() + modifier_vl)
 
 
@@ -181,9 +182,8 @@ def sub_f(args):
         return errors.SCLWrongOperationError("subtraction", modified_var.type.__repr__())
     modifier_tok = ps.try_get(ps.make_value(*oper.tokentypes_support_sub), 1, args)
 
-    modifier_vl, er = safe_getv(modifier_tok, modified_var.type)
-    if er:
-        return er
+    if (modifier_vl := safe_getv(modifier_tok, modified_var.type)) == None:
+        return errors.SCLError(f"Expected argument of type '{modified_var.type}' at position 3")
     modified_var.set_value(modified_var.get_value() - modifier_vl)
 
 def mul_f(args):
@@ -195,9 +195,8 @@ def mul_f(args):
         return errors.SCLWrongOperationError("multiplication", modified_var.type.__repr__())
     modifier_tok = ps.try_get(ps.make_value(*oper.tokentypes_support_mul), 1, args)
 
-    modifier_vl, er = safe_getv(modifier_tok, modified_var.type)
-    if er:
-        return er
+    if (modifier_vl := safe_getv(modifier_tok, modified_var.type)) == None:
+        return errors.SCLError(f"Expected argument of type '{modified_var.type}' at position 3")
     modified_var.set_value(modified_var.get_value() * modifier_vl)
 
 def div_f(args):
@@ -209,9 +208,8 @@ def div_f(args):
         return errors.SCLWrongOperationError("division", modified_var.type.__repr__())
     modifier_tok = ps.try_get(ps.make_value(*oper.tokentypes_support_div), 1, args)
 
-    modifier_vl, er = safe_getv(modifier_tok, modified_var.type)
-    if er:
-        return er
+    if (modifier_vl := safe_getv(modifier_tok, modified_var.type)) == None:
+        return errors.SCLError(f"Expected argument of type '{modified_var.type}' at position 3")
     if modifier_vl == 0:
         return errors.SCLDivisionByZeroError(modified_var.ident)
     if modified_var.type == al.DT_TYPES.INT:
@@ -228,14 +226,12 @@ def pow_f(args):
         return errors.SCLWrongOperationError("power", modified_var.type.__repr__())
     modifier_tok = ps.try_get(ps.make_value(*oper.tokentypes_support_pow), 1, args)
 
-    modifier_vl, er = safe_getv(modifier_tok, modified_var.type)
-    if er:
-        return er
+    if (modifier_vl := safe_getv(modifier_tok, modified_var.type)) == None:
+        return errors.SCLError(f"Expected argument of type '{modified_var.type}' at position 3")
     modified_var.set_value(modified_var.get_value() ** modifier_vl)
 
 def help_f(args):
     cmd_tok = ps.try_get([ps.TokenType.ARG],0,args)
-
     match cmd_tok.value:
         case 'dp':
             print(manuals.DP)
@@ -285,11 +281,11 @@ def fun_f(args):
     name :str = name_tok.value
     params_tok = ps.try_get([ps.TokenType.TUPLE], 2, args)
 
-    params = ps.parse_param(params_tok.value)
+    params = params_tok.value
 
     body_tok = ps.try_get([ps.TokenType.BODY],3,args)
 
-    body = ps.parse_body(body_tok.value)
+    body = body_tok.value
     ev.alloc(al.Function(ftype,name,params,body))
 
 def call_f(args):
@@ -300,13 +296,13 @@ def call_f(args):
     if not type(fun) is al.Function:
         return errors.SCLNotCallableError(name_tok.value)
     effective_params_tok = ps.try_get([ps.TokenType.TUPLE], 1, args)
-
-    eff_params: list[str] = ps.parse_param(effective_params_tok.value)
+    #TODO fix this (parse_params ...)
+    eff_params: list[str] = effective_params_tok.value
     return fun.execute_fun(eff_params)
 
 
 def ret_f(args):
-    vtok = ps.try_get(ps.make_value(*ps.all_literals()),0,args)
+    vtok = ps.try_get(ps.make_value(*parser.tokens.all_literals()), 0, args)
 
     if vtok.type == ps.TokenType.VARRF:
         if (val := ul.var_ref_str(vtok.value)):

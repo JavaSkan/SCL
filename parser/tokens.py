@@ -61,3 +61,14 @@ class Token:
                 v += f"\t{' '.join([t.__repr__() for t in e])}\n"
             return f"{self.t.__repr__()}:[{v}]"""
         return f"{self.type.__repr__()}:'{self.value}'"
+
+    def has_specific_value(self,values) -> bool:
+        return self.value in values
+
+def all_literals():
+    return {
+        TokenType.INT,
+        TokenType.FLT,
+        TokenType.STR,
+        TokenType.BOOL
+    }
