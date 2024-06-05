@@ -37,27 +37,27 @@ datatypes_support_pow = {
 ################################
 
 tokentypes_support_add = {
-    TokenType.INTLIT,
-    TokenType.FLTLIT,
-    TokenType.STRLIT
+    TokenType.INT,
+    TokenType.FLT,
+    TokenType.STR
 }
 
 tokentypes_support_sub = {
-    TokenType.INTLIT,
-    TokenType.FLTLIT,
+    TokenType.INT,
+    TokenType.FLT,
 }
 
 tokentypes_support_mul = {
-    TokenType.INTLIT,
-    TokenType.FLTLIT,
+    TokenType.INT,
+    TokenType.FLT,
 }
 
 tokentypes_support_div = {
-    TokenType.INTLIT,
-    TokenType.FLTLIT,
+    TokenType.INT,
+    TokenType.FLT,
 }
 
 tokentypes_support_pow = {
-    TokenType.INTLIT,
-    TokenType.FLTLIT,
+    TokenType.INT,
+    TokenType.FLT,
 }

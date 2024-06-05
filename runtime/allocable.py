@@ -3,7 +3,7 @@ from enum import Enum, auto
 from runtime import errors as err, env as ev
 from runtime.ulang import is_var_ref
 from runtime.execution import execute
-from parser.parsing import parse_formal_param, TokenType
+from parser.parsing import  TokenType
 #TODO implement boolean system
 #TODO create a class called iterable as a mother-class of a string variable and arrays
 
@@ -63,13 +63,13 @@ class DT_TYPES(Enum):
     def get_literal_version(self):
         match self:
             case DT_TYPES.INT:
-                return TokenType.INTLIT
+                return TokenType.INT
             case DT_TYPES.FLT:
-                return TokenType.FLTLIT
+                return TokenType.FLT
             case DT_TYPES.STR:
-                return TokenType.STRLIT
+                return TokenType.STR
             case DT_TYPES.BOOL:
-                return TokenType.BOOLLIT
+                return TokenType.BOOL
 
     def convert_str_to_value(self,str_value):
         match self:
