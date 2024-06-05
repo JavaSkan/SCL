@@ -2,6 +2,7 @@ from runtime import errors
 from runtime.errors import dangerous
 from .tokens import TokenType, Token
 from .indexed import Indexed
+from . import keywords
 def make_value(*token_types):
     return [TokenType.VARRF] + [t for t in token_types]
 
@@ -23,6 +24,14 @@ def no_extra_args(args: list[Token]):
     if len(args) >= 1:
         return errors.SCLArgsMismatchError(extra=f"Extra arguments provided, please check the command syntax")
     return None
+
+@dangerous(note="[PARSER-ERR] PARSING FORMAL PARAMETERS")
+def parse_formal_params(args: list[Token]) -> (str,str):
+    type_tok: Token = try_get([TokenType.ARG],0,args)
+    if not type_tok.has_specific_value(keywords.data_types_keywords):
+        return errors.SCLUnknownTypeError(type_tok.value)
+    name_tok: Token = try_get([TokenType.ARG], 1, args)
+    return type_tok.value,name_tok.value
 
 class Parser(Indexed):
 

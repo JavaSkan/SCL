@@ -1,7 +1,7 @@
 from runtime import env
 
-def is_var_ref(id:str) -> bool:
-    return id.startswith('$') and len(id) > 1
+def is_var_ref(id_:str) -> bool:
+    return id_.startswith('$') and len(id_) > 1
 
 def var_ref(id_: str):
     return env.get_from_id(id_)

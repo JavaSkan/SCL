@@ -1,9 +1,8 @@
 from enum import Enum, auto
 
 from runtime import errors as err, env as ev
-from runtime.ulang import is_var_ref
 from runtime.execution import execute
-from parser.parsing import  TokenType
+from parser.parsing import TokenType, Token, parse_formal_params
 #TODO implement boolean system
 #TODO create a class called iterable as a mother-class of a string variable and arrays
 
@@ -175,7 +174,7 @@ class Array(Allocable):
 
 class Function(Allocable):
 
-    def __init__(self, type:DT_TYPES,ident:str, params:list[str] | None, body:list[str]):
+    def __init__(self, type:DT_TYPES,ident:str, params:list[Token] | None, body:list[str]):
         self.pm = [] if params == None else params
         self.bd = body
         self.locals = []
@@ -188,30 +187,31 @@ class Function(Allocable):
 
     def init_params(self):
         for p in self.pm:
-            type,name = parse_formal_param(p)
+            type,name = parse_formal_params(p)
             self.locals.append(Variable(VARKIND.MUT,DT_TYPES.str_to_type(type),name,None))
             ev.alloc(self.locals[len(self.locals)-1])
 
     """
     To set params when the function is called
     """
-    def set_params(self,arguments: list[str]):
-        if len(arguments) != len(self.locals):
-            return err.SCLFunArgsMismatchError(len(self.locals),len(arguments))
-        for (i,arg) in enumerate(arguments):
-            if is_var_ref(arg):
-                if not (var := ev.get_from_id(arg[1:])):
-                    return err.SCLNotFoundError(arg[1:])
-                if not var.type == self.locals[i].type:
-                    return err.SCLWrongTypeError(self.locals[i].type.__repr__())
-                self.locals[i].set_value(var.get_value())
-            else:
-                if self.locals[i].is_compatible_with_type(arg):
-                    self.locals[i].set_value(self.locals[i].convert_str_value_to_type(arg))
+    def set_params(self,efpars):
+        if len(efpars) != len(self.locals):
+            return err.SCLFunArgsMismatchError(len(self.locals),len(efpars))
+        for (i,e) in enumerate(efpars):
+            tok = e[0]
+            if tok.type == TokenType.VARRF:
+                vr = ev.get_from_id(tok.value)
+                if not vr.type == self.locals[i].type:
+                    err.SCLWrongTypeError(self.locals[i].type.__repr__(),vr.type.__repr__()).trigger()
                 else:
-                    if arg == '':
-                        return err.SCLError(f"Function argument {i+1} is missing")
-                    return err.SCLWrongTypeError(self.locals[i].type.__repr__(),DT_TYPES.guess_type(arg).__repr__())
+                    self.locals[i].set_value(self.locals[i].type.convert_str_to_value(vr.vl))
+            else:
+                if not self.locals[i].type.get_literal_version() == tok.type:
+                    err.SCLWrongTypeError(self.locals[i].type.__repr__(),tok.type.__repr__()).trigger()
+                else:
+                    self.locals[i].set_value(self.locals[i].type.convert_str_to_value(tok.value))
+
+
 
 
     def del_locals(self):
@@ -219,7 +219,7 @@ class Function(Allocable):
             ev.de_alloc(local)
 
     #arguments are var refs or literals ($x or 0 ...)
-    def execute_fun(self,arguments: list[str]):
+    def execute_fun(self,arguments: list[Token]):
         self.init_params()
         if self.pm != None:
             if (setpmerr:=self.set_params(arguments)):

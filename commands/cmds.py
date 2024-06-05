@@ -91,7 +91,7 @@ def new_f(args: list[ps.Token]):
     value_tok = ps.try_get(ps.make_value(*parser.tokens.all_literals()), 3, args)
     if (value := safe_getv(value_tok, al.DT_TYPES.str_to_type(vartype))) == None:
         return errors.SCLWrongTypeError(vartype,al.DT_TYPES.guess_type(value_tok.value).__repr__())
-    #TODO Fix usage of var_ref_getvalue() in all commands
+
     #Creation of the variable
     ev.alloc(al.Variable(
          al.VARKIND.str_to_varkind(varkind),
@@ -296,7 +296,6 @@ def call_f(args):
     if not type(fun) is al.Function:
         return errors.SCLNotCallableError(name_tok.value)
     effective_params_tok = ps.try_get([ps.TokenType.TUPLE], 1, args)
-    #TODO fix this (parse_params ...)
     eff_params: list[str] = effective_params_tok.value
     return fun.execute_fun(eff_params)
 
