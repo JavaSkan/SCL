@@ -1,6 +1,7 @@
 import os
 from parser import parsing as ps, keywords as kws
 from runtime import errors
+from runtime.errors import dangerous
 from runtime import allocable as al
 from runtime import env as ev
 from runtime import ulang as ul
@@ -10,53 +11,36 @@ from . import manuals
 
 
 """
-Gets a token which is either a varref token or another type
+Gets a token which is either a varref token or a literal
 and an expected datatype
 
 If the token is a variable reference then it checks if the expected datatype is matching and it returns the value of that variable
 if it is existing
 
-If the token is a type literal, then it check if it's matching with the expected datatype
+If the token is a literal, then it check if it's matching with the expected datatype
 and returns the corresponding value
-
-The function always return a tuple with the value put in first position and the error in the second one
-one or both can be None
-(<value>,<error>)
 """
-def var_ref_getvalue(tok: ps.ParseToken, expected_vartype: al.DT_TYPES):
+def safe_getv(tok: ps.ParseToken, expected_vartype: al.DT_TYPES):
     if tok.type == ps.TokenType.VARREF:
-        if not (var := ul.var_ref(tok.value)):
-            return (None, errors.SCLNotFoundError(tok.value))
-        elif var.type == expected_vartype:
-            return var.get_value(),None
-        else:
-            return None,errors.SCLWrongTypeError(expected_vartype.__repr__(), var.type.__repr__())
+        var = ul.var_ref(tok.value)
+        if var.type == expected_vartype:
+            return var.get_value()
     else:
-        match tok.type:
-            case ps.TokenType.INTLIT:
-                if expected_vartype == al.DT_TYPES.INT:
-                    return int(tok.value),None
-                else:
-                    return None,errors.SCLWrongTypeError(expected_vartype.__repr__(), ps.TokenType.INTLIT.__repr__())
-            case ps.TokenType.FLTLIT:
-                if expected_vartype == al.DT_TYPES.FLT:
-                    return float(tok.value),None
-                else:
-                    return None, errors.SCLWrongTypeError(expected_vartype.__repr__(), ps.TokenType.FLTLIT.__repr__())
-            case ps.TokenType.STRLIT:
-                if expected_vartype == al.DT_TYPES.STR:
-                    return tok.value,None
-                else:
-                    return None,errors.SCLWrongTypeError(expected_vartype.__repr__(), ps.TokenType.STRLIT.__repr__())
-            case ps.TokenType.BOOLLIT:
-                if expected_vartype == al.DT_TYPES.BOOL:
-                    return tok.value == 'true',None
-                else:
-                    return None,errors.SCLWrongTypeError(expected_vartype.__repr__(), ps.TokenType.BOOLLIT.__repr__())
-            case _:
-                return None,errors.SCLError("Invalid token, is not compatible with datatypes")
+        if tok.type == expected_vartype.get_literal_version():
+            return expected_vartype.convert_str_to_value(tok.value)
+    return None
 
-
+@dangerous(note="STRICT GETV FUNCTION")
+def strict_getv(tok: ps.ParseToken, expected_vartype: al.DT_TYPES):
+    if tok.type == ps.TokenType.VARREF:
+        var = ul.var_ref(tok.value)
+        if var.type == expected_vartype:
+            return var.get_value()
+        return errors.SCLWrongTypeError(expected_vartype.__repr__(),var.type.__repr__())
+    else:
+        if tok.type == expected_vartype.get_literal_version():
+            return expected_vartype.convert_str_to_value(tok.value)
+    return errors.SCLWrongTypeError(expected_vartype.__repr__(),tok.type.__repr__())
 
 def display_f(args: list[ps.ParseToken]):
     for i,arg in enumerate(args):
@@ -68,60 +52,44 @@ def displayl_f(args: list[ps.ParseToken]):
         display_f(args)
         print()
     except IndexError:
-        return  errors.SCLArgsMismatchError()
+        return errors.SCLArgsMismatchError()
 
 
 def loop_f(args: list[ps.ParseToken]):
-    it_tok, er = ps.try_get(ps.TokenType.make_value(ps.TokenType.INTLIT,ps.TokenType.BOOLLIT),0,args)
-    if er:
-        return er
-    it_int, er_intlit = var_ref_getvalue(it_tok,al.DT_TYPES.INT)
-    it_bool, er_boollit = var_ref_getvalue(it_tok,al.DT_TYPES.BOOL)
-    if er_intlit and er_boollit:
-        return errors.SCLError("Expected either a boolean or an integer at position 2")
-    body_tok, ers = ps.try_get([ps.TokenType.BODY],1,args)
-    if ers:
-        return ers
+    it_tok = ps.try_get(ps.TokenType.make_value(ps.TokenType.INTLIT,ps.TokenType.BOOLLIT),0,args)
+    body_tok = ps.try_get([ps.TokenType.BODY],1,args)
     instructions = ps.parse_body(body_tok.value)
-    if not er_intlit:
+    if (it_int := safe_getv(it_tok, al.DT_TYPES.INT)) != None:
         for i in range(it_int):
             for ins in instructions:
                 exe.execute(ins)
-    else:
-        while var_ref_getvalue(it_tok,al.DT_TYPES.BOOL)[0]:
+    elif safe_getv(it_tok, al.DT_TYPES.BOOL) != None:
+        while safe_getv(it_tok, al.DT_TYPES.BOOL):
             for ins in instructions:
                 exe.execute(ins)
-
+    else:
+        return errors.SCLError("Expected argument of type 'boolean or integer' at position 2")
 
 def new_f(args: list[ps.ParseToken]):
-    varkind_tok, er = ps.try_get([ps.TokenType.ARG],0,args)
-    if er:
-        return er
+    varkind_tok = ps.try_get([ps.TokenType.ARG],0,args)
     if not varkind_tok.has_specific_value(kws.new_cmd_varkind_kws):
         return errors.SCLError(f"Syntax Error: expected argument with specific value in {kws.new_cmd_varkind_kws}, got {varkind_tok.value}")
     varkind: str = varkind_tok.value
 
-    vartype_tok, er = ps.try_get([ps.TokenType.ARG],1,args)
-    if er:
-        return er
+    vartype_tok = ps.try_get([ps.TokenType.ARG],1,args)
     if not vartype_tok.has_specific_value(kws.data_types_keywords):
         return errors.SCLError(f"Syntax Error: expected argument with specific value in {kws.data_types_keywords}, got {varkind_tok.value}")
     vartype: str = vartype_tok.value
 
-    varname_tok,er = ps.try_get([ps.TokenType.ARG],2,args)
-    if er:
-        return er
+    varname_tok = ps.try_get([ps.TokenType.ARG],2,args)
     if not ul.is_valid_name(varname_tok.value):
         return errors.SCLInvalidNameError(varname_tok.value)
     varname: str = varname_tok.value
 
-    value_tok, er = ps.try_get(ps.TokenType.make_value(*ps.all_literals()),3,args)
-    if er:
-        return er
-    value, getvalueerr = var_ref_getvalue(value_tok,al.DT_TYPES.str_to_type(vartype))
-    if getvalueerr:
-        return getvalueerr
-
+    value_tok = ps.try_get(ps.TokenType.make_value(*ps.all_literals()),3,args)
+    if (value := safe_getv(value_tok, al.DT_TYPES.str_to_type(vartype))) == None:
+        return errors.SCLWrongTypeError(vartype,al.DT_TYPES.guess_type(value_tok.value).__repr__())
+    #TODO Fix usage of var_ref_getvalue() in all commands
     #Creation of the variable
     ev.alloc(al.Variable(
          al.VARKIND.str_to_varkind(varkind),
@@ -130,7 +98,7 @@ def new_f(args: list[ps.ParseToken]):
          value)
     )
 
-
+@errors.dangerous()
 def state_f(args):
     nea = ps.no_extra_args(args)
     if nea:
@@ -140,18 +108,14 @@ def state_f(args):
     print(f"FUNCTION RETURN VALUE : {ev._FUN_RET}")
 
 def end_f(args):
-    status_tok, er = ps.try_get(ps.TokenType.make_value(ps.TokenType.INTLIT),0,args)
-    if er:
-        return er
-    status,er = var_ref_getvalue(status_tok,al.DT_TYPES.INT)
-    if er:
-        return er
-    show_tok, er = ps.try_get(ps.TokenType.make_value(ps.TokenType.BOOLLIT),1,args)
-    if er:
-        return er
-    show,er = var_ref_getvalue(show_tok,al.DT_TYPES.BOOL)
-    if er:
-        return er
+    status_tok = ps.try_get(ps.TokenType.make_value(ps.TokenType.INTLIT),0,args)
+    if (status := safe_getv(status_tok, al.DT_TYPES.INT)) == None:
+        return errors.SCLWrongTypeError("int")
+
+    show_tok = ps.try_get(ps.TokenType.make_value(ps.TokenType.BOOLLIT),1,args)
+    if (show := safe_getv(show_tok, al.DT_TYPES.BOOL)) == None:
+        return errors.SCLWrongTypeError("bool",al.DT_TYPES.guess_type(show_tok.value).__repr__())
+
     ev._ERR_CODE = status
     if show:
         print("ended with success" if status == 0 else "ended with failure")
@@ -164,32 +128,23 @@ def clear_f(args):
     ev._VARS.clear()
 
 def delete_f(args):
-    ident_tok, er = ps.try_get([ps.TokenType.ARG],0,args)
-    if er:
-        return er
-    if not (var := ul.var_ref(ident_tok.value)):
-        return errors.SCLNotFoundError(ident_tok.value)
+    ident_tok = ps.try_get([ps.TokenType.ARG],0,args)
+    var = ul.var_ref(ident_tok.value)
     ev.de_alloc(var)
 
-
 def set_f(args):
-    ident_tok, er = ps.try_get([ps.TokenType.ARG],0,args)
-    if er:
-        return er
+    ident_tok = ps.try_get([ps.TokenType.ARG],0,args)
     if not (var := ul.var_ref(ident_tok.value)):
         return errors.SCLNotFoundError(ident_tok.value)
-    new_v_tok, er = ps.try_get(ps.TokenType.make_value(*ps.all_literals()),1,args)
-    if er:
-        return er
-    new_v, er = var_ref_getvalue(new_v_tok,var.type)
-    if er:
-        return er
+
+    new_v_tok = ps.try_get(ps.TokenType.make_value(*ps.all_literals()),1,args)
+    if (new_v := safe_getv(new_v_tok, var.type)) == None:
+        return errors.SCLError(f"Expected argument of type '{var.type}' at position ")
     var.set_value(new_v)
 
 def execute_f(args):
-    path_tok, er = ps.try_get(ps.TokenType.make_value(ps.TokenType.STRLIT),0,args)
-    if er:
-        return er
+    path_tok = ps.try_get(ps.TokenType.make_value(ps.TokenType.STRLIT),0,args)
+
     path: str = path_tok.value
     if not os.path.exists(path):
         return errors.SCLNotExistingPathError(path)
@@ -203,66 +158,57 @@ def execute_f(args):
             exe.execute(line)
 
 def add_f(args):
-    modified_tok, er = ps.try_get([ps.TokenType.ARG],0,args)
-    if er:
-        return er
+    modified_tok = ps.try_get([ps.TokenType.ARG],0,args)
+
     if not (modified_var := ev.get_from_id(modified_tok.value)):
         return errors.SCLNotFoundError(modified_tok.value)
     if not modified_var.type in oper.datatypes_support_add:
         return errors.SCLWrongOperationError("addition",modified_var.type.__repr__())
-    modifier_tok, er = ps.try_get(ps.TokenType.make_value(*oper.tokentypes_support_add),1,args)
-    if er:
-        return er
-    modifier_vl, er = var_ref_getvalue(modifier_tok,modified_var.type)
-    if er:
-        return er
+    modifier_tok = ps.try_get(ps.TokenType.make_value(*oper.tokentypes_support_add),1,args)
+
+    if (modifier_vl := safe_getv(modifier_tok, modified_var.type)):
+        return errors.SCLError(f"Expected argument of type '{modified_var.type}' at position ")
     modified_var.set_value(modified_var.get_value() + modifier_vl)
 
 
 def sub_f(args):
-    modified_tok, er = ps.try_get([ps.TokenType.ARG], 0, args)
-    if er:
-        return er
+    modified_tok = ps.try_get([ps.TokenType.ARG], 0, args)
+
     if not (modified_var := ev.get_from_id(modified_tok.value)):
         return errors.SCLNotFoundError(modified_tok.value)
     if not modified_var.type in oper.datatypes_support_sub:
         return errors.SCLWrongOperationError("subtraction", modified_var.type.__repr__())
-    modifier_tok, er = ps.try_get(ps.TokenType.make_value(*oper.tokentypes_support_sub), 1, args)
-    if er:
-        return er
-    modifier_vl, er = var_ref_getvalue(modifier_tok, modified_var.type)
+    modifier_tok = ps.try_get(ps.TokenType.make_value(*oper.tokentypes_support_sub), 1, args)
+
+    modifier_vl, er = safe_getv(modifier_tok, modified_var.type)
     if er:
         return er
     modified_var.set_value(modified_var.get_value() - modifier_vl)
 
 def mul_f(args):
-    modified_tok, er = ps.try_get([ps.TokenType.ARG], 0, args)
-    if er:
-        return er
+    modified_tok = ps.try_get([ps.TokenType.ARG], 0, args)
+
     if not (modified_var := ev.get_from_id(modified_tok.value)):
         return errors.SCLNotFoundError(modified_tok.value)
     if not modified_var.type in oper.datatypes_support_mul:
         return errors.SCLWrongOperationError("multiplication", modified_var.type.__repr__())
-    modifier_tok, er = ps.try_get(ps.TokenType.make_value(*oper.tokentypes_support_mul), 1, args)
-    if er:
-        return er
-    modifier_vl, er = var_ref_getvalue(modifier_tok, modified_var.type)
+    modifier_tok = ps.try_get(ps.TokenType.make_value(*oper.tokentypes_support_mul), 1, args)
+
+    modifier_vl, er = safe_getv(modifier_tok, modified_var.type)
     if er:
         return er
     modified_var.set_value(modified_var.get_value() * modifier_vl)
 
 def div_f(args):
-    modified_tok, er = ps.try_get([ps.TokenType.ARG], 0, args)
-    if er:
-        return er
+    modified_tok = ps.try_get([ps.TokenType.ARG], 0, args)
+
     if not (modified_var := ev.get_from_id(modified_tok.value)):
         return errors.SCLNotFoundError(modified_tok.value)
     if not modified_var.type in oper.datatypes_support_div:
         return errors.SCLWrongOperationError("division", modified_var.type.__repr__())
-    modifier_tok, er = ps.try_get(ps.TokenType.make_value(*oper.tokentypes_support_div), 1, args)
-    if er:
-        return er
-    modifier_vl, er = var_ref_getvalue(modifier_tok, modified_var.type)
+    modifier_tok = ps.try_get(ps.TokenType.make_value(*oper.tokentypes_support_div), 1, args)
+
+    modifier_vl, er = safe_getv(modifier_tok, modified_var.type)
     if er:
         return er
     if modifier_vl == 0:
@@ -273,25 +219,22 @@ def div_f(args):
         modified_var.set_value(modified_var.get_value() / modifier_vl)
 
 def pow_f(args):
-    modified_tok, er = ps.try_get([ps.TokenType.ARG], 0, args)
-    if er:
-        return er
+    modified_tok = ps.try_get([ps.TokenType.ARG], 0, args)
+
     if not (modified_var := ev.get_from_id(modified_tok.value)):
         return errors.SCLNotFoundError(modified_tok.value)
     if not modified_var.type in oper.datatypes_support_pow:
         return errors.SCLWrongOperationError("power", modified_var.type.__repr__())
-    modifier_tok, er = ps.try_get(ps.TokenType.make_value(*oper.tokentypes_support_pow), 1, args)
-    if er:
-        return er
-    modifier_vl, er = var_ref_getvalue(modifier_tok, modified_var.type)
+    modifier_tok = ps.try_get(ps.TokenType.make_value(*oper.tokentypes_support_pow), 1, args)
+
+    modifier_vl, er = safe_getv(modifier_tok, modified_var.type)
     if er:
         return er
     modified_var.set_value(modified_var.get_value() ** modifier_vl)
 
 def help_f(args):
-    cmd_tok, er = ps.try_get([ps.TokenType.ARG],0,args)
-    if er:
-        return er
+    cmd_tok = ps.try_get([ps.TokenType.ARG],0,args)
+
     match cmd_tok.value:
         case 'dp':
             print(manuals.DP)
@@ -331,47 +274,39 @@ def help_f(args):
             return errors.SCLError("Unknown Command, either it does not exist or there is no manual for it")
 
 def fun_f(args):
-    type_tok, err = ps.try_get([ps.TokenType.ARG],0,args)
-    if err:
-        return err
+    type_tok = ps.try_get([ps.TokenType.ARG],0,args)
+
     if not type_tok.has_specific_value(kws.data_types_keywords):
         return errors.SCLError(f"Syntax Error: expected argument with specific value in {kws.data_types_keywords}, got {type_tok.value}")
     ftype: al.DT_TYPES = al.DT_TYPES.str_to_type(type_tok.value)
-    name_tok, err = ps.try_get([ps.TokenType.ARG],1,args)
-    if err:
-        return name_tok
+    name_tok = ps.try_get([ps.TokenType.ARG],1,args)
+
     name :str = name_tok.value
-    params_tok, err = ps.try_get([ps.TokenType.PARAM],2,args)
-    if err:
-        return err
+    params_tok = ps.try_get([ps.TokenType.PARAM],2,args)
+
     params = ps.parse_param(params_tok.value)
-    if err:
-        return err
-    body_tok, err = ps.try_get([ps.TokenType.BODY],3,args)
-    if err:
-        return err
+
+    body_tok = ps.try_get([ps.TokenType.BODY],3,args)
+
     body = ps.parse_body(body_tok.value)
     ev.alloc(al.Function(ftype,name,params,body))
 
 def call_f(args):
-    name_tok, err = ps.try_get([ps.TokenType.ARG],0,args)
-    if err:
-        return err
+    name_tok = ps.try_get([ps.TokenType.ARG],0,args)
+
     if not (fun := ev.get_from_id(name_tok.value)):
         return errors.SCLNotFoundError(name_tok.value)
     if not type(fun) is al.Function:
         return errors.SCLNotCallableError(name_tok.value)
-    effective_params_tok, err = ps.try_get([ps.TokenType.PARAM],1,args)
-    if err:
-        return err
+    effective_params_tok = ps.try_get([ps.TokenType.PARAM],1,args)
+
     eff_params: list[str] = ps.parse_param(effective_params_tok.value)
     return fun.execute_fun(eff_params)
 
 
 def ret_f(args):
-    vtok, err = ps.try_get(ps.TokenType.make_value(*ps.all_literals()),0,args)
-    if err:
-        return err
+    vtok = ps.try_get(ps.TokenType.make_value(*ps.all_literals()),0,args)
+
     if vtok.type == ps.TokenType.VARREF:
         if (val := ul.var_ref_str(vtok.value)):
             ev._FUN_RET = val
@@ -379,13 +314,12 @@ def ret_f(args):
         ev._FUN_RET = vtok.value
 
 def read_f(args):
-    vartok, err = ps.try_get([ps.TokenType.ARG],0,args)
-    if err:
-        return err
+    vartok = ps.try_get([ps.TokenType.ARG],0,args)
+
     if not (var := ul.var_ref(vartok.value)):
         return errors.SCLNotFoundError(vartok.value)
     usr_input = input()
-    if var.is_compatible_with_type(usr_input):
-        var.set_value(var.convert_str_value_to_type(usr_input))
+    if var.type.is_compatible_with_type(usr_input):
+        var.set_value(var.type.convert_str_to_value(usr_input))
     else:
         return errors.SCLWrongTypeError(var.type.__repr__())

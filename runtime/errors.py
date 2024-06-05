@@ -1,18 +1,18 @@
+CURRENT_LINE = ""
+
 class SCLError:
     def __init__(self,msg:str):
         self.err_msg = msg
 
     def trigger(self,line="",note=""):
         print("\033[0;31m",end="")
+        print(f"[SCL-ERR]: {self.err_msg}")
         if line != "":
             print(f'line: "{line}"')
-        print(f"ERROR: {self.err_msg}")
         if note != "":
             print(f"NOTE: {note}")
         print("\033[0m",end="")
         quit()
-        # if env._ERR_QUIT:
-        #     quit()
 
 class SCLUnknownCommandError(SCLError):
     """
@@ -20,7 +20,7 @@ class SCLUnknownCommandError(SCLError):
     Raised when an unknown command is given
     """
     def __init__(self,comm):
-        self.msg = "Unknown Command"
+        self.msg = f"Unknown Command '{comm}'"
         super().__init__(self.msg)
 
 class SCLArgsMismatchError(SCLError):
@@ -48,24 +48,24 @@ class SCLNotFoundError(SCLError):
     id: id of the allocable
     Raised when trying to interact with a variable that isn't existing
     """
-    def __init__(self,id:str) -> None:
-        self.msg = f"Element '{id}' not found"
+    def __init__(self,identifier:str) -> None:
+        self.msg = f"Element '{identifier}' not found"
         super().__init__(self.msg)
 
 class SCLNotCallableError(SCLError):
     """
     Raised when attempting to call a non-callable object
     """
-    def __init__(self,id_:str) -> None:
-        self.msg = f"Element '{id_}' cannot be called"
+    def __init__(self,identifier:str) -> None:
+        self.msg = f"Element '{identifier}' cannot be called"
         super().__init__(self.msg)
 
 class SCLInvalidNameError(SCLError):
     """
     This Error is raised when naming a variable incorrectly
     """
-    def __init__(self,id:str) -> None:
-        self.msg = f"'{id}' is not a valid name"
+    def __init__(self,identifier:str) -> None:
+        self.msg = f"Identifier'{identifier}' is not a valid name"
         super().__init__(self.msg)
 
 class SCLWrongTypeError(SCLError):
@@ -139,11 +139,11 @@ class SCLModifyConstantError(SCLError):
 
 class SCLAlreadyExistingError(SCLError):
     """
-    Raised when attempting to create a variable with a taken identifier
+    Raised when attempting to alloc a variable with a taken identifier
     """
 
     def __init__(self,identifier: str,allocable):
-        super().__init__(f"'{identifier}' is already taken: {allocable}")
+        super().__init__(f"Identifier '{identifier}' is already taken: {allocable}")
 
 class SCLNotExistingPathError(SCLError):
     """
@@ -151,7 +151,7 @@ class SCLNotExistingPathError(SCLError):
     """
 
     def __init__(self, path: str):
-        super().__init__(f"'{path}' is an invalid path or does not exist")
+        super().__init__(f"The path '{path}' is an invalid path or does not exist")
 
 class SCLIsNotAFileError(SCLError):
     """
@@ -159,7 +159,7 @@ class SCLIsNotAFileError(SCLError):
     """
 
     def __init__(self,path: str):
-        super().__init__(f"'{path}' is not a file")
+        super().__init__(f"This '{path}' is not a file")
 
 class SCLWrongExtensionError(SCLError):
     """
@@ -168,5 +168,17 @@ class SCLWrongExtensionError(SCLError):
     """
 
     def __init__(self, filename: str):
-        super().__init__(f"'{filename}' doesn't have the correct extension '.scl'")
+        super().__init__(f"This '{filename}' doesn't have the correct extension '.scl'")
+
 #TODO Syntax Error
+
+def dangerous(note=None):
+    def inner(func):
+        def wrapper(*args,**kwargs):
+            retval = func(*args,**kwargs)
+            if isinstance(retval,SCLError):
+                retval.trigger(line=CURRENT_LINE,note= note or "")
+            else:
+                return retval
+        return wrapper
+    return inner

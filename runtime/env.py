@@ -4,27 +4,30 @@ _VARS = []            #variables
 _FUN_RET = None       #Function return
 _ERR_CODE = 0         #Error Code
 
+@err.dangerous()
 def alloc(element):
-    if not (existing := get_from_id(element.ident)):
+    if not element in _VARS:
         element.maddr = len(_VARS)-1
         _VARS.append(element)
     else:
-        err.SCLAlreadyExistingError(existing.ident,existing).trigger()
+        #err.SCLAlreadyExistingError(existing.ident,existing).trigger()
+        return err.SCLAlreadyExistingError(element.ident,element)
 
+@err.dangerous()
 def de_alloc(element):
-    _VARS.remove(element)
+    try:
+        _VARS.remove(element)
+    except ValueError:
+        return err.SCLNotFoundError(element.ident)
 
-def get_from_id(id_: str):
+
+@err.dangerous()
+def get_from_id(identifier: str):
     for v in _VARS:
-        if v.ident == id_:
+        if v.ident == identifier:
             return v
-    return None
+    return err.SCLNotFoundError(identifier)
 
 def get_value_from_id(id):
     var = get_from_id(id)
-    if not var:
-        err.SCLNotFoundError(id).trigger()
-    if type(var) is al.Variable:
-        return var.get_value()
-    else:
-        return var.vl
+    return var.get_value()

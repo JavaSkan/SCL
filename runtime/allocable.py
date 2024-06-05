@@ -1,10 +1,11 @@
 from enum import Enum, auto
 
 from runtime import errors as err, env as ev
-from runtime.ulang import var_ref_str, is_var_ref
-from runtime.execution import execute, execute_block
-from parser.parsing import parse_formal_param
+from runtime.ulang import is_var_ref
+from runtime.execution import execute
+from parser.parsing import parse_formal_param, TokenType
 #TODO implement boolean system
+#TODO create a class called iterable as a mother-class of a string variable and arrays
 
 class DT_TYPES(Enum):
 
@@ -59,6 +60,39 @@ class DT_TYPES(Enum):
             case DT_TYPES.STR:
                 return ''
 
+    def get_literal_version(self):
+        match self:
+            case DT_TYPES.INT:
+                return TokenType.INTLIT
+            case DT_TYPES.FLT:
+                return TokenType.FLTLIT
+            case DT_TYPES.STR:
+                return TokenType.STRLIT
+            case DT_TYPES.BOOL:
+                return TokenType.BOOLLIT
+
+    def convert_str_to_value(self,str_value):
+        match self:
+            case DT_TYPES.INT:
+                return int(str_value)
+            case DT_TYPES.FLT:
+                return float(str_value)
+            case DT_TYPES.STR:
+                return str_value
+            case DT_TYPES.BOOL:
+                return str_value == 'true'
+
+    def is_compatible_with_type(self,str_value):
+        match self:
+            case DT_TYPES.INT:
+                return str_value.isdecimal()
+            case DT_TYPES.FLT:
+                return str_value.replace('.', '', 1).isdigit()
+            case DT_TYPES.STR:
+                return True
+            case DT_TYPES.BOOL:
+                return str_value == 'true' or str_value == 'false'
+
 class VARKIND(Enum):
     MUT = auto()
     CONST = auto()
@@ -96,28 +130,6 @@ class Allocable:
 
     def set_value(self,new):
         self.vl = new
-
-    def is_compatible_with_type(self,str_value:str) -> bool:
-        match self.type:
-            case DT_TYPES.INT:
-                return str_value.isdigit()
-            case DT_TYPES.FLT:
-                return str_value.replace('.','',1).isdigit()
-            case DT_TYPES.STR:
-                return True
-            case DT_TYPES.BOOL:
-                return str_value == 'true' or str_value == 'false'
-
-    def convert_str_value_to_type(self,str_value:str):
-        match self.type:
-            case DT_TYPES.INT:
-                return int(str_value)
-            case DT_TYPES.FLT:
-                return float(str_value)
-            case DT_TYPES.STR:
-                return str_value
-            case DT_TYPES.BOOL:
-                return str_value == 'true'
 
 class Variable(Allocable):
 
@@ -215,8 +227,8 @@ class Function(Allocable):
         for ins in self.bd:
             execute(ins)
         if ev._FUN_RET:
-            if self.is_compatible_with_type(ev._FUN_RET):
-                self.set_value(self.convert_str_value_to_type(ev._FUN_RET))
+            if self.type.is_compatible_with_type(ev._FUN_RET):
+                self.set_value(self.type.convert_str_to_value(ev._FUN_RET))
             else:
                 return err.SCLWrongReturnTypeError(self.ident,self.type.__repr__(),DT_TYPES.guess_type(ev._FUN_RET).__repr__())
         else:
