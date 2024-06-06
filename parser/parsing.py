@@ -33,6 +33,20 @@ def parse_formal_params(args: list[Token]) -> (str,str):
     name_tok: Token = try_get([TokenType.ARG], 1, args)
     return type_tok.value,name_tok.value
 
+"""
+Parses Effective parameters, takes a tuple token <tok>
+and returns the first parsed token of each part of the tuple
+"""
+def parse_effective_param(tok: Token) -> list[Token]:
+    res = []
+    p = Parser([])
+    for toks in tok.value:
+        p.reset(toks)
+        if len(toks) == 0:
+            continue
+        res.append(p.parse()[0])
+    return res
+
 class Parser(Indexed):
 
     def __init__(self, tokens: list[Token]) -> None:

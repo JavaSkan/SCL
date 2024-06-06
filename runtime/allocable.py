@@ -2,7 +2,7 @@ from enum import Enum, auto
 
 from runtime import errors as err, env as ev
 from runtime.execution import execute
-from parser.parsing import TokenType, Token, parse_formal_params
+from parser.parsing import TokenType, Token, parse_formal_params, parse_effective_param
 #TODO implement boolean system
 #TODO create a class called iterable as a mother-class of a string variable and arrays
 
@@ -84,9 +84,9 @@ class DT_TYPES(Enum):
     def is_compatible_with_type(self,str_value):
         match self:
             case DT_TYPES.INT:
-                return str_value.isdecimal()
+                return str_value.isdigit() or str_value.startswith('-') and str_value[1:].isdigit()
             case DT_TYPES.FLT:
-                return str_value.replace('.', '', 1).isdigit()
+                return (p := str_value.replace('.', '', 1)).isdigit() or p.startswith('-') and p[1:].isdigit()
             case DT_TYPES.STR:
                 return True
             case DT_TYPES.BOOL:
@@ -198,7 +198,7 @@ class Function(Allocable):
         if len(efpars) != len(self.locals):
             return err.SCLFunArgsMismatchError(len(self.locals),len(efpars))
         for (i,e) in enumerate(efpars):
-            tok = e[0]
+            tok = e
             if tok.type == TokenType.VARRF:
                 vr = ev.get_from_id(tok.value)
                 if not vr.type == self.locals[i].type:

@@ -296,7 +296,7 @@ def call_f(args):
     if not type(fun) is al.Function:
         return errors.SCLNotCallableError(name_tok.value)
     effective_params_tok = ps.try_get([ps.TokenType.TUPLE], 1, args)
-    eff_params: list[str] = effective_params_tok.value
+    eff_params = ps.parse_effective_param(effective_params_tok)
     return fun.execute_fun(eff_params)
 
 
