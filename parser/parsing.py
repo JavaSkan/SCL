@@ -27,6 +27,8 @@ def no_extra_args(args: list[Token]):
 
 @dangerous(note="[PARSER-ERR] PARSING FORMAL PARAMETERS")
 def parse_formal_params(args: list[Token]) -> (str,str):
+    if len(args) == 0:
+        return ("","")
     type_tok: Token = try_get([TokenType.ARG],0,args)
     if not type_tok.has_specific_value(keywords.data_types_keywords):
         return errors.SCLUnknownTypeError(type_tok.value)

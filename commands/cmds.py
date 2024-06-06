@@ -281,7 +281,7 @@ def fun_f(args):
     name :str = name_tok.value
     params_tok = ps.try_get([ps.TokenType.TUPLE], 2, args)
 
-    params = params_tok.value
+    params = params_tok.value if not params_tok.is_empty_tuple() else None
 
     body_tok = ps.try_get([ps.TokenType.BODY],3,args)
 

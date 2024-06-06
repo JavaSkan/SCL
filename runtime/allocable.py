@@ -186,10 +186,13 @@ class Function(Allocable):
         return f"Function:('{self.ident}':{self.vl})"
 
     def init_params(self):
-        for p in self.pm:
-            type,name = parse_formal_params(p)
-            self.locals.append(Variable(VARKIND.MUT,DT_TYPES.str_to_type(type),name,None))
-            ev.alloc(self.locals[len(self.locals)-1])
+        if self.pm:
+            for p in self.pm:
+                type,name = parse_formal_params(p.value)
+                self.locals.append(Variable(VARKIND.MUT,DT_TYPES.str_to_type(type),name,None))
+                ev.alloc(self.locals[len(self.locals)-1])
+        else:
+            pass #nothing to do when there are no parameters
 
     """
     To set params when the function is called
@@ -222,7 +225,7 @@ class Function(Allocable):
     def execute_fun(self,arguments: list[Token]):
         self.init_params()
         if self.pm != None:
-            if (setpmerr:=self.set_params(arguments)):
+            if (setpmerr := self.set_params(arguments)):
                 return setpmerr
         for ins in self.bd:
             execute(ins)

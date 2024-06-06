@@ -65,6 +65,11 @@ class Token:
     def has_specific_value(self,values) -> bool:
         return self.value in values
 
+    def is_empty_tuple(self) -> bool:
+        if self.type == TokenType.TUPLE:
+            return len(self.value) == 1 and len(self.value[0]) == 0
+        return False
+
 def all_literals():
     return {
         TokenType.INT,
