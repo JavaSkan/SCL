@@ -12,6 +12,7 @@ class DT_TYPES(Enum):
     FLT  = auto()
     STR  = auto()
     BOOL = auto()
+    NIL  = auto()
 
     def __repr__(self):
         return self.to_python_type().__class__.__name__
@@ -26,6 +27,8 @@ class DT_TYPES(Enum):
                 return str()
             case DT_TYPES.BOOL:
                 return bool()
+            case DT_TYPES.NIL:
+                return None
 
     def str_to_type(str_type: str):
         match str_type:
@@ -37,14 +40,18 @@ class DT_TYPES(Enum):
                 return DT_TYPES.STR
             case 'bool':
                 return DT_TYPES.BOOL
+            case 'nil':
+                return DT_TYPES.NIL
 
     def guess_type(str_value: str):
-        if str_value.isdigit():
+        if str_value.isdigit() or str_value.startswith('-') and str_value[1:].isdigit():
             return DT_TYPES.INT
-        elif str_value.replace('.','',1).isdigit():
+        elif (p := str_value.replace('.', '', 1)).isdigit() or p.startswith('-') and p[1:].isdigit():
             return DT_TYPES.FLT
         elif str_value == 'true' or str_value == 'false':
             return DT_TYPES.BOOL
+        elif str_value == 'nil':
+            return DT_TYPES.NIL
         else:
             return DT_TYPES.STR
 
@@ -58,6 +65,8 @@ class DT_TYPES(Enum):
                 return True
             case DT_TYPES.STR:
                 return ''
+            case DT_TYPES.NIL:
+                return None
 
     def get_literal_version(self):
         match self:
@@ -69,6 +78,7 @@ class DT_TYPES(Enum):
                 return TokenType.STR
             case DT_TYPES.BOOL:
                 return TokenType.BOOL
+            #No literal type for nil type
 
     def convert_str_to_value(self,str_value):
         match self:
@@ -79,7 +89,9 @@ class DT_TYPES(Enum):
             case DT_TYPES.STR:
                 return str_value
             case DT_TYPES.BOOL:
-                return str_value == 'true'
+                return str_value == 'true' or not (str_value == 'false')
+            case DT_TYPES.NIL:
+                return None
 
     def is_compatible_with_type(self,str_value):
         match self:
@@ -91,6 +103,8 @@ class DT_TYPES(Enum):
                 return True
             case DT_TYPES.BOOL:
                 return str_value == 'true' or str_value == 'false'
+            case DT_TYPES.NIL:
+                return str_value == 'nil'
 
 class VARKIND(Enum):
     MUT = auto()
@@ -186,13 +200,10 @@ class Function(Allocable):
         return f"Function:('{self.ident}':{self.vl})"
 
     def init_params(self):
-        if self.pm:
-            for p in self.pm:
-                type,name = parse_formal_params(p.value)
-                self.locals.append(Variable(VARKIND.MUT,DT_TYPES.str_to_type(type),name,None))
-                ev.alloc(self.locals[len(self.locals)-1])
-        else:
-            pass #nothing to do when there are no parameters
+        for p in self.pm:
+            type,name = parse_formal_params(p.value)
+            self.locals.append(Variable(VARKIND.MUT,DT_TYPES.str_to_type(type),name,None))
+            ev.alloc(self.locals[len(self.locals)-1])
 
     """
     To set params when the function is called
@@ -223,13 +234,16 @@ class Function(Allocable):
 
     #arguments are var refs or literals ($x or 0 ...)
     def execute_fun(self,arguments: list[Token]):
-        self.init_params()
         if self.pm != None:
-            if (setpmerr := self.set_params(arguments)):
-                return setpmerr
+            self.init_params()
+            if self.pm != None:
+                if (setpmerr := self.set_params(arguments)):
+                    return setpmerr
         for ins in self.bd:
             execute(ins)
         if ev._FUN_RET:
+            if self.type == DT_TYPES.NIL:
+                return err.SCLNoReturnValueError(self.ident,DT_TYPES.guess_type(ev._FUN_RET).__repr__())
             if self.type.is_compatible_with_type(ev._FUN_RET):
                 self.set_value(self.type.convert_str_to_value(ev._FUN_RET))
             else:

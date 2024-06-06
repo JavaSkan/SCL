@@ -273,8 +273,8 @@ def help_f(args):
 def fun_f(args):
     type_tok = ps.try_get([ps.TokenType.ARG],0,args)
 
-    if not type_tok.has_specific_value(kws.data_types_keywords):
-        return errors.SCLError(f"Syntax Error: expected argument with specific value in {kws.data_types_keywords}, got {type_tok.value}")
+    if not type_tok.has_specific_value(kws.funret_data_types_keywords):
+        return errors.SCLError(f"Syntax Error: expected argument with specific value in {kws.funret_data_types_keywords}, got {type_tok.value}")
     ftype: al.DT_TYPES = al.DT_TYPES.str_to_type(type_tok.value)
     name_tok = ps.try_get([ps.TokenType.ARG],1,args)
 

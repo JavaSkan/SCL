@@ -85,14 +85,23 @@ class SCLWrongTypeError(SCLError):
 class SCLWrongReturnTypeError(SCLError):
     """
     to the type of the called function
-    funname : function name/identifier
+    funname: function name/identifier
     ftype: the type of the function
     fprovided: value's type provided
     Raised when attempting to return a type whose type is not corresponding
     """
 
-    def __init__(self,funname:str,ftype:str,fprovided:str):
+    def __init__(self,funname:str, ftype:str, fprovided:str):
         super().__init__(f"Function '{funname}' of type '{ftype}' tried to return '{fprovided}'")
+
+class SCLNoReturnValueError(SCLError):
+    """
+    funname: function name/identifier
+    vtret: return value's type
+    Raised when attempting to return a value and the function is of type nil
+    """
+    def __init__(self, funname: str, vtret: str):
+        super().__init__(f"Function '{funname}' must return nothing, returned '{vtret}' instead (check the function definition)")
 
 class SCLWrongOperationError(SCLError):
     """

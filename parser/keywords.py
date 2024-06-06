@@ -9,6 +9,9 @@ data_types_keywords = {
     'bool'
 }
 
+funret_data_types_keywords = data_types_keywords.copy()
+funret_data_types_keywords.add('nil')
+
 new_cmd_varkind_kws = {
     'const',
     'temp',
