@@ -347,4 +347,4 @@ def array_f(args: list[ps.Token]):
         else:
             return errors.SCLUnknownTypeError(type_tok.value)
     else:
-        return errors.SCLError(f"Syntax Error: expected argument with specific value in {kws.data_types_keywords}, got {oper_tok.value}")
+        return errors.SCLError(f"Syntax Error: expected argument with specific value in {kws.arr_cmd_operations}, got {oper_tok.value}")
