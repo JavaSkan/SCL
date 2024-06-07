@@ -1,4 +1,5 @@
 from parser import parsing as ps
+from parser.tokens import TokenType
 from runtime import allocable as al
 from runtime import ulang as ul
 from runtime import errors
@@ -14,10 +15,13 @@ if it is existing
 If the token is a literal, then it check if it's matching with the expected datatype
 and returns the corresponding value
 """
-def safe_getv(tok: ps.Token, expected_vartype: al.DT_TYPES):
+def safe_getv(tok: ps.Token, expected_vartype: al.DT_TYPES,isarray=False):
     if tok.type == ps.TokenType.VARRF:
         var = ul.var_ref(tok.value)
         if var.type == expected_vartype:
+            if isarray:
+                if type(var) is not al.Array:
+                    return None
             return var.get_value()
     else:
         if tok.type == expected_vartype.get_literal_version():
@@ -25,13 +29,19 @@ def safe_getv(tok: ps.Token, expected_vartype: al.DT_TYPES):
     return None
 
 @dangerous(note="STRICT GETV FUNCTION")
-def strict_getv(tok: ps.Token, expected_vartype: al.DT_TYPES):
+def strict_getv(tok: ps.Token, expected_vartype: al.DT_TYPES, isarray=False):
     if tok.type == ps.TokenType.VARRF:
         var = ul.var_ref(tok.value)
-        if var.type == expected_vartype:
+        if var.type == expected_vartype or expected_vartype == al.DT_TYPES.ANY:
+            if isarray:
+                if type(var) is not al.Array:
+                    return errors.SCLWrongTypeError(al.Array.__name__,var.type.__repr__())
             return var.get_value()
         return errors.SCLWrongTypeError(expected_vartype.__repr__(),var.type.__repr__())
     else:
+        if isarray:
+            if tok.type == TokenType.ARR and expected_vartype != al.DT_TYPES.ANY:
+                return ps.parse_array_values(tok)
         if tok.type == expected_vartype.get_literal_version():
             return expected_vartype.convert_str_to_value(tok.value)
     return errors.SCLWrongTypeError(expected_vartype.__repr__(),tok.type.__repr__())
@@ -40,3 +50,6 @@ def replace_varrf_by_value(values: list):
     for i, v in enumerate(values):
         if type(v) is ps.Token and v.type == ps.TokenType.VARRF:
             values[i] = ul.var_ref(v.value).get_value()
+
+def make_value(*token_types):
+    return [TokenType.VARRF] + [t for t in token_types]

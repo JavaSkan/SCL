@@ -1,5 +1,6 @@
 import os
 
+import commands
 import parser.tokens
 from parser import keywords as kws
 from runtime import env as ev
@@ -23,7 +24,7 @@ def displayl_f(args: list[ps.Token]):
 
 
 def loop_f(args: list[ps.Token]):
-    it_tok = ps.try_get(ps.make_value(ps.TokenType.INT,ps.TokenType.BOOL),0,args)
+    it_tok = ps.try_get(commands.make_value(ps.TokenType.INT, ps.TokenType.BOOL), 0, args)
     body_tok = ps.try_get([ps.TokenType.BODY],1,args)
     instructions = body_tok.value
     if (it_int := safe_getv(it_tok, al.DT_TYPES.INT)) != None:
@@ -53,7 +54,7 @@ def new_f(args: list[ps.Token]):
         return errors.SCLInvalidNameError(varname_tok.value)
     varname: str = varname_tok.value
 
-    value_tok = ps.try_get(ps.make_value(*parser.tokens.all_literals()), 3, args)
+    value_tok = ps.try_get(commands.make_value(*parser.tokens.all_literals()), 3, args)
     if (value := safe_getv(value_tok, al.DT_TYPES.str_to_type(vartype))) == None:
         return errors.SCLWrongTypeError(vartype,al.DT_TYPES.guess_type(value_tok.value).__repr__())
 
@@ -75,11 +76,11 @@ def state_f(args: list[ps.Token]):
     print(f"FUNCTION RETURN VALUE : {ev._FUN_RET}")
 
 def end_f(args: list[ps.Token]):
-    status_tok = ps.try_get(ps.make_value(ps.TokenType.INT),0,args)
+    status_tok = ps.try_get(commands.make_value(ps.TokenType.INT), 0, args)
     if (status := safe_getv(status_tok, al.DT_TYPES.INT)) == None:
         return errors.SCLWrongTypeError("int")
 
-    show_tok = ps.try_get(ps.make_value(ps.TokenType.BOOL),1,args)
+    show_tok = ps.try_get(commands.make_value(ps.TokenType.BOOL), 1, args)
     if (show := safe_getv(show_tok, al.DT_TYPES.BOOL)) == None:
         return errors.SCLWrongTypeError("bool",al.DT_TYPES.guess_type(show_tok.value).__repr__())
 
@@ -104,13 +105,13 @@ def set_f(args: list[ps.Token]):
     if not (var := ul.var_ref(ident_tok.value)):
         return errors.SCLNotFoundError(ident_tok.value)
 
-    new_v_tok = ps.try_get(ps.make_value(*parser.tokens.all_literals()), 1, args)
+    new_v_tok = ps.try_get(commands.make_value(*parser.tokens.all_literals()), 1, args)
     if (new_v := safe_getv(new_v_tok, var.type)) == None:
         return errors.SCLError(f"Expected argument of type '{var.type.__repr__()}' at position ")
     var.set_value(new_v)
 
 def execute_f(args: list[ps.Token]):
-    path_tok = ps.try_get(ps.make_value(ps.TokenType.STR),0,args)
+    path_tok = ps.try_get(commands.make_value(ps.TokenType.STR), 0, args)
 
     path: str = path_tok.value
     if not os.path.exists(path):
@@ -131,7 +132,7 @@ def add_f(args: list[ps.Token]):
         return errors.SCLNotFoundError(modified_tok.value)
     if not modified_var.type in oper.datatypes_support_add:
         return errors.SCLWrongOperationError("addition",modified_var.type.__repr__())
-    modifier_tok = ps.try_get(ps.make_value(*oper.tokentypes_support_add),1,args)
+    modifier_tok = ps.try_get(commands.make_value(*oper.tokentypes_support_add), 1, args)
 
     if (modifier_vl := safe_getv(modifier_tok, modified_var.type)) == None:
         return errors.SCLError(f"Expected argument of type '{modified_var.type}' at position 3")
@@ -145,7 +146,7 @@ def sub_f(args: list[ps.Token]):
         return errors.SCLNotFoundError(modified_tok.value)
     if not modified_var.type in oper.datatypes_support_sub:
         return errors.SCLWrongOperationError("subtraction", modified_var.type.__repr__())
-    modifier_tok = ps.try_get(ps.make_value(*oper.tokentypes_support_sub), 1, args)
+    modifier_tok = ps.try_get(commands.make_value(*oper.tokentypes_support_sub), 1, args)
 
     if (modifier_vl := safe_getv(modifier_tok, modified_var.type)) == None:
         return errors.SCLError(f"Expected argument of type '{modified_var.type}' at position 3")
@@ -158,7 +159,7 @@ def mul_f(args: list[ps.Token]):
         return errors.SCLNotFoundError(modified_tok.value)
     if not modified_var.type in oper.datatypes_support_mul:
         return errors.SCLWrongOperationError("multiplication", modified_var.type.__repr__())
-    modifier_tok = ps.try_get(ps.make_value(*oper.tokentypes_support_mul), 1, args)
+    modifier_tok = ps.try_get(commands.make_value(*oper.tokentypes_support_mul), 1, args)
 
     if (modifier_vl := safe_getv(modifier_tok, modified_var.type)) == None:
         return errors.SCLError(f"Expected argument of type '{modified_var.type}' at position 3")
@@ -171,7 +172,7 @@ def div_f(args: list[ps.Token]):
         return errors.SCLNotFoundError(modified_tok.value)
     if not modified_var.type in oper.datatypes_support_div:
         return errors.SCLWrongOperationError("division", modified_var.type.__repr__())
-    modifier_tok = ps.try_get(ps.make_value(*oper.tokentypes_support_div), 1, args)
+    modifier_tok = ps.try_get(commands.make_value(*oper.tokentypes_support_div), 1, args)
 
     if (modifier_vl := safe_getv(modifier_tok, modified_var.type)) == None:
         return errors.SCLError(f"Expected argument of type '{modified_var.type}' at position 3")
@@ -189,7 +190,7 @@ def pow_f(args: list[ps.Token]):
         return errors.SCLNotFoundError(modified_tok.value)
     if not modified_var.type in oper.datatypes_support_pow:
         return errors.SCLWrongOperationError("power", modified_var.type.__repr__())
-    modifier_tok = ps.try_get(ps.make_value(*oper.tokentypes_support_pow), 1, args)
+    modifier_tok = ps.try_get(commands.make_value(*oper.tokentypes_support_pow), 1, args)
 
     if (modifier_vl := safe_getv(modifier_tok, modified_var.type)) == None:
         return errors.SCLError(f"Expected argument of type '{modified_var.type}' at position 3")
@@ -268,7 +269,7 @@ def call_f(args: list[ps.Token]):
 
 
 def ret_f(args: list[ps.Token]):
-    vtok = ps.try_get(ps.make_value(*parser.tokens.all_literals()), 0, args)
+    vtok = ps.try_get(commands.make_value(*parser.tokens.all_literals()), 0, args)
 
     if vtok.type == ps.TokenType.VARRF:
         if (val := ul.var_ref_str(vtok.value)):
@@ -294,8 +295,8 @@ def array_f(args: list[ps.Token]):
         if type_tok.has_specific_value(kws.arr_types_keywords):
             name_tok = ps.try_get([ps.TokenType.ARG],2,args)
             if ul.is_valid_name(name_tok.value):
-                values_tok = ps.try_get([ps.TokenType.ARR],3,args)
-                values = ps.parse_array_values(values_tok)
+                values_tok = ps.try_get(make_value(TokenType.ARR),3,args)
+                values = strict_getv(values_tok,al.DT_TYPES.str_to_type(type_tok.value),isarray=True)
                 replace_varrf_by_value(values)
                 new_arr = al.Array(
                         al.DT_TYPES.str_to_type(type_tok.value),
