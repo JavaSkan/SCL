@@ -70,6 +70,19 @@ class Token:
             return len(self.value) == 1 and len(self.value[0]) == 0
         return False
 
+    def evaluate(self):
+        match self.type:
+            case TokenType.INT:
+                return int(self.value)
+            case TokenType.FLT:
+                return float(self.value)
+            case TokenType.STR:
+                return self.value
+            case TokenType.BOOL:
+                return self.value == 'true' or not (self.value == 'false')
+            case _:
+                return None
+
 def all_literals():
     return {
         TokenType.INT,

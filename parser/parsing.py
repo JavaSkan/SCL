@@ -49,6 +49,19 @@ def parse_effective_param(tok: Token) -> list[Token]:
         res.append(p.parse()[0])
     return res
 
+"""
+Parses arrays values into real python values
+"""
+def parse_array_values(tok: Token) -> list:
+    res = []
+    p = Parser([])
+    for toks in tok.value:
+        p.reset(toks)
+        if len(toks) == 0:
+            continue
+        res.append(p.parse()[0].evaluate())
+    return res
+
 class Parser(Indexed):
 
     def __init__(self, tokens: list[Token]) -> None:

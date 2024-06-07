@@ -101,7 +101,7 @@ def new_f(args: list[ps.Token]):
     )
 
 @errors.dangerous()
-def state_f(args):
+def state_f(args: list[ps.Token]):
     nea = ps.no_extra_args(args)
     if nea:
         return nea
@@ -109,7 +109,7 @@ def state_f(args):
     print(f"ERROR_CODE: {ev._ERR_CODE}")
     print(f"FUNCTION RETURN VALUE : {ev._FUN_RET}")
 
-def end_f(args):
+def end_f(args: list[ps.Token]):
     status_tok = ps.try_get(ps.make_value(ps.TokenType.INT),0,args)
     if (status := safe_getv(status_tok, al.DT_TYPES.INT)) == None:
         return errors.SCLWrongTypeError("int")
@@ -123,18 +123,18 @@ def end_f(args):
         print("ended with success" if status == 0 else "ended with failure")
     quit()
 
-def clear_f(args):
+def clear_f(args: list[ps.Token]):
     nea = ps.no_extra_args(args)
     if nea:
         return nea
     ev._VARS.clear()
 
-def delete_f(args):
+def delete_f(args: list[ps.Token]):
     ident_tok = ps.try_get([ps.TokenType.ARG],0,args)
     var = ul.var_ref(ident_tok.value)
     ev.de_alloc(var)
 
-def set_f(args):
+def set_f(args: list[ps.Token]):
     ident_tok = ps.try_get([ps.TokenType.ARG],0,args)
     if not (var := ul.var_ref(ident_tok.value)):
         return errors.SCLNotFoundError(ident_tok.value)
@@ -144,7 +144,7 @@ def set_f(args):
         return errors.SCLError(f"Expected argument of type '{var.type.__repr__()}' at position ")
     var.set_value(new_v)
 
-def execute_f(args):
+def execute_f(args: list[ps.Token]):
     path_tok = ps.try_get(ps.make_value(ps.TokenType.STR),0,args)
 
     path: str = path_tok.value
@@ -159,7 +159,7 @@ def execute_f(args):
         for line in lines:
             exe.execute(line)
 
-def add_f(args):
+def add_f(args: list[ps.Token]):
     modified_tok = ps.try_get([ps.TokenType.ARG],0,args)
 
     if not (modified_var := ev.get_from_id(modified_tok.value)):
@@ -173,7 +173,7 @@ def add_f(args):
     modified_var.set_value(modified_var.get_value() + modifier_vl)
 
 
-def sub_f(args):
+def sub_f(args: list[ps.Token]):
     modified_tok = ps.try_get([ps.TokenType.ARG], 0, args)
 
     if not (modified_var := ev.get_from_id(modified_tok.value)):
@@ -186,7 +186,7 @@ def sub_f(args):
         return errors.SCLError(f"Expected argument of type '{modified_var.type}' at position 3")
     modified_var.set_value(modified_var.get_value() - modifier_vl)
 
-def mul_f(args):
+def mul_f(args: list[ps.Token]):
     modified_tok = ps.try_get([ps.TokenType.ARG], 0, args)
 
     if not (modified_var := ev.get_from_id(modified_tok.value)):
@@ -199,7 +199,7 @@ def mul_f(args):
         return errors.SCLError(f"Expected argument of type '{modified_var.type}' at position 3")
     modified_var.set_value(modified_var.get_value() * modifier_vl)
 
-def div_f(args):
+def div_f(args: list[ps.Token]):
     modified_tok = ps.try_get([ps.TokenType.ARG], 0, args)
 
     if not (modified_var := ev.get_from_id(modified_tok.value)):
@@ -217,7 +217,7 @@ def div_f(args):
     else:
         modified_var.set_value(modified_var.get_value() / modifier_vl)
 
-def pow_f(args):
+def pow_f(args: list[ps.Token]):
     modified_tok = ps.try_get([ps.TokenType.ARG], 0, args)
 
     if not (modified_var := ev.get_from_id(modified_tok.value)):
@@ -230,7 +230,7 @@ def pow_f(args):
         return errors.SCLError(f"Expected argument of type '{modified_var.type}' at position 3")
     modified_var.set_value(modified_var.get_value() ** modifier_vl)
 
-def help_f(args):
+def help_f(args: list[ps.Token]):
     cmd_tok = ps.try_get([ps.TokenType.ARG],0,args)
     match cmd_tok.value:
         case 'dp':
@@ -270,7 +270,7 @@ def help_f(args):
         case _:
             return errors.SCLError("Unknown Command, either it does not exist or there is no manual for it")
 
-def fun_f(args):
+def fun_f(args: list[ps.Token]):
     type_tok = ps.try_get([ps.TokenType.ARG],0,args)
 
     if not type_tok.has_specific_value(kws.funret_data_types_keywords):
@@ -288,7 +288,7 @@ def fun_f(args):
     body = body_tok.value
     ev.alloc(al.Function(ftype,name,params,body))
 
-def call_f(args):
+def call_f(args: list[ps.Token]):
     name_tok = ps.try_get([ps.TokenType.ARG],0,args)
 
     if not (fun := ev.get_from_id(name_tok.value)):
@@ -300,7 +300,7 @@ def call_f(args):
     return fun.execute_fun(eff_params)
 
 
-def ret_f(args):
+def ret_f(args: list[ps.Token]):
     vtok = ps.try_get(ps.make_value(*parser.tokens.all_literals()), 0, args)
 
     if vtok.type == ps.TokenType.VARRF:
@@ -309,7 +309,7 @@ def ret_f(args):
     else:
         ev._FUN_RET = vtok.value
 
-def read_f(args):
+def read_f(args: list[ps.Token]):
     vartok = ps.try_get([ps.TokenType.ARG],0,args)
 
     if not (var := ul.var_ref(vartok.value)):
@@ -319,3 +319,29 @@ def read_f(args):
         var.set_value(var.type.convert_str_to_value(usr_input))
     else:
         return errors.SCLWrongTypeError(var.type.__repr__())
+
+def array_f(args: list[ps.Token]):
+    oper_tok = ps.try_get([ps.TokenType.ARG],0,args)
+    if oper_tok.has_specific_value("new"):
+        type_tok = ps.try_get([ps.TokenType.ARG],1,args)
+        if type_tok.has_specific_value(kws.data_types_keywords):
+            name_tok = ps.try_get([ps.TokenType.ARG],2,args)
+            if ul.is_valid_name(name_tok.value):
+                values_tok = ps.try_get([ps.TokenType.ARR],3,args)
+                values = ps.parse_array_values(values_tok)
+                new_arr = al.Array(
+                        al.DT_TYPES.str_to_type(type_tok.value),
+                        name_tok.value,
+                        values
+                    )
+                if not new_arr.are_values_compatible_with_type(values):
+                    return errors.SCLError(f"Not all values are compatible with the array type: {new_arr.type.__repr__()}")
+                ev.alloc(
+                    new_arr
+                )
+            else:
+                return errors.SCLInvalidNameError(name_tok.value)
+        else:
+            return errors.SCLUnknownTypeError(type_tok.value)
+    else:
+        return errors.SCLError(f"Syntax Error: expected argument with specific value in {kws.data_types_keywords}, got {oper_tok.value}")

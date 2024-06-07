@@ -15,18 +15,18 @@ class DT_TYPES(Enum):
     NIL  = auto()
 
     def __repr__(self):
-        return self.to_python_type().__class__.__name__
+        return self.name[self.name.find('.')+1:]
 
     def to_python_type(self):
         match self:
             case DT_TYPES.INT:
-                return int()
+                return int
             case DT_TYPES.FLT:
-                return float()
+                return float
             case DT_TYPES.STR:
-                return str()
+                return str
             case DT_TYPES.BOOL:
-                return bool()
+                return bool
             case DT_TYPES.NIL:
                 return None
 
@@ -186,11 +186,17 @@ class Array(Allocable,Iterable):
         Iterable.__init__(self,vars)
 
     def __repr__(self):
-        out = f"Array<{self.ident}>:["
-        for i in range(self.length-1):
-            out += f"{self.vl[i]},"
-        out += f"{self.vl[len(self.vl)-1]}]"
+        out = f"Array<'{self.ident}' {self.type.__repr__()}>:["
+        for (i,e) in enumerate(self.items):
+            out += f"{e}{',' if i < self.length-1 else ''}"
+        out += "]"
         return out
+
+    def are_values_compatible_with_type(self,values):
+        for v in values:
+            if type(v) is not self.type.to_python_type():
+                return False
+        return True
 
 
 class Function(Allocable):
