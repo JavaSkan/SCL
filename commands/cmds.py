@@ -265,6 +265,8 @@ def help_f(args: list[ps.Token]):
             print(manuals.CALL)
         case 'read':
             print(manuals.READ)
+        case 'arr':
+            print(manuals.ARR)
         case 'list':
             print("dp, dpl, loop, new, set, stt, end, clr, del, exec, add, sub, mul, div, pow, help, fun, ret, call, read")
         case _:

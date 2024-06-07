@@ -83,3 +83,6 @@ CALL    = '>>> Calls a function\n' + \
 READ    = '>>> Reads input from the user\n' + \
           'Syntax: read <destination>\n' + \
           'Where <destination> is the name of the variable in which the input will be stored'
+
+ARR     = '>>> Creates an array\n' + \
+          'Syntax: arr new <type> <name> [...]\n'
