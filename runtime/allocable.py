@@ -12,6 +12,7 @@ class DT_TYPES(Enum):
     FLT  = auto()
     STR  = auto()
     BOOL = auto()
+    ANY  = auto()
     NIL  = auto()
 
     def __repr__(self):
@@ -27,6 +28,8 @@ class DT_TYPES(Enum):
                 return str
             case DT_TYPES.BOOL:
                 return bool
+            case DT_TYPES.ANY:
+                return object
             case DT_TYPES.NIL:
                 return None
 
@@ -40,6 +43,8 @@ class DT_TYPES(Enum):
                 return DT_TYPES.STR
             case 'bool':
                 return DT_TYPES.BOOL
+            case 'any':
+                return DT_TYPES.ANY
             case 'nil':
                 return DT_TYPES.NIL
 

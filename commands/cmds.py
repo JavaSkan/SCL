@@ -326,7 +326,7 @@ def array_f(args: list[ps.Token]):
     oper_tok = ps.try_get([ps.TokenType.ARG],0,args)
     if oper_tok.has_specific_value("new"):
         type_tok = ps.try_get([ps.TokenType.ARG],1,args)
-        if type_tok.has_specific_value(kws.data_types_keywords):
+        if type_tok.has_specific_value(kws.arr_types_keywords):
             name_tok = ps.try_get([ps.TokenType.ARG],2,args)
             if ul.is_valid_name(name_tok.value):
                 values_tok = ps.try_get([ps.TokenType.ARR],3,args)
@@ -336,8 +336,9 @@ def array_f(args: list[ps.Token]):
                         name_tok.value,
                         values
                     )
-                if not new_arr.are_values_compatible_with_type(values):
-                    return errors.SCLError(f"Not all values are compatible with the array type: {new_arr.type.__repr__()}")
+                if type_tok.value != 'any':
+                    if not new_arr.are_values_compatible_with_type(values):
+                        return errors.SCLError(f"Not all values are compatible with the array type: {new_arr.type.__repr__()}")
                 ev.alloc(
                     new_arr
                 )
