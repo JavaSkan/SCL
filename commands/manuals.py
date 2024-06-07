@@ -76,7 +76,7 @@ RET     = '>>> Returns a value in a function context\n' + \
           ' -compatible with variable referencing (at <value> argument)'
 
 CALL    = '>>> Calls a function\n' + \
-          'Syntax: call <name> [argument(s)]\n' + \
+          'Syntax: call <name> (argument(s))\n' + \
           'NOTE:\n' + \
           ' -compatible with variable referencing (at [argument(s)])\n'
 
@@ -85,4 +85,6 @@ READ    = '>>> Reads input from the user\n' + \
           'Where <destination> is the name of the variable in which the input will be stored'
 
 ARR     = '>>> Creates an array\n' + \
-          'Syntax: arr new <type> <name> [...]\n'
+          'Syntax: arr new <type> <name> <values>\n' + \
+          'NOTE:\n' + \
+          ' -compatible with variable referencing (at <values>)'
