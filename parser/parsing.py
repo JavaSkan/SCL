@@ -3,9 +3,9 @@ from runtime.errors import dangerous
 from .tokens import TokenType, Token
 from .indexed import Indexed
 from . import keywords
+
 def make_value(*token_types):
     return [TokenType.VARRF] + [t for t in token_types]
-
 
 @dangerous(note="[PARSING] TOKEN MISMATCH")
 def try_get(tokentypes:list[TokenType], position:int, args:list[Token]) -> (Token | None, errors.SCLError):

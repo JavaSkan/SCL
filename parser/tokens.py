@@ -81,7 +81,7 @@ class Token:
             case TokenType.BOOL:
                 return self.value == 'true' or not (self.value == 'false')
             case _:
-                return None
+                return self
 
 def all_literals():
     return {
