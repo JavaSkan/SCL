@@ -2,7 +2,7 @@ from enum import Enum, auto
 
 from runtime import errors as err, env as ev
 from runtime.execution import execute
-from parser.parsing import TokenType, Token, parse_formal_params, parse_effective_param
+from parser.parsing import TokenType, Token, parse_formal_params
 #TODO implement boolean system
 #TODO create a class called iterable as a mother-class of a string variable and arrays
 
@@ -130,6 +130,22 @@ class VARKIND(Enum):
             case _:
                 return "unknown varkind"
 
+class Iterable:
+    def __init__(self,items):
+        self.items = items
+        self.length = len(self.items)
+
+    def get_at_index(self, index: int):
+        if 0 <= index < self.length:
+            return self.items[index]
+        return err.SCLIndexOutOfBoundError(index, self.length)
+
+    def set_at_index(self,index: int, value):
+        if 0 <= index < self.length:
+            self.items[index] = value
+        else:
+            return err.SCLIndexOutOfBoundError(index, self.length)
+
 class Allocable:
 
     def __init__(self, type: DT_TYPES, ident:str, value):
@@ -163,28 +179,19 @@ class Variable(Allocable):
     def __repr__(self):
         return f"Var<{self.kind.__repr__()} {self.type.__repr__()}>({self.ident}:{self.vl})"
 
-class Array(Allocable):
+class Array(Allocable,Iterable):
 
-    def __init__(self, type: DT_TYPES,ident:str, vars: list):
+    def __init__(self, type: DT_TYPES, ident:str, vars: list):
         super().__init__(type, ident, vars)
-        self.len = len(vars)
+        Iterable.__init__(self,vars)
 
     def __repr__(self):
         out = f"Array<{self.ident}>:["
-        for i in range(self.len-1):
+        for i in range(self.length-1):
             out += f"{self.vl[i]},"
         out += f"{self.vl[len(self.vl)-1]}]"
         return out
 
-    def get_v(self,idx):
-        return self.vl[idx]
-
-    def add_v(self,var:Variable):
-        self.vl.append(var)
-
-    #TODO find a way to use this function
-    def rem_v(self,idx):
-        return self.vl.pop(idx)
 
 class Function(Allocable):
 
@@ -201,7 +208,7 @@ class Function(Allocable):
 
     def init_params(self):
         for p in self.pm:
-            type,name = parse_formal_params(p.value)
+            type,name = parse_formal_params(p)
             self.locals.append(Variable(VARKIND.MUT,DT_TYPES.str_to_type(type),name,None))
             ev.alloc(self.locals[len(self.locals)-1])
 

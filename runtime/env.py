@@ -10,7 +10,6 @@ def alloc(element):
         element.maddr = len(_VARS)-1
         _VARS.append(element)
     else:
-        #err.SCLAlreadyExistingError(existing.ident,existing).trigger()
         return err.SCLAlreadyExistingError(element.ident,element)
 
 @err.dangerous()

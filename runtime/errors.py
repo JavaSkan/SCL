@@ -1,5 +1,16 @@
 CURRENT_LINE = ""
 
+def dangerous(note=None):
+    def inner(func):
+        def wrapper(*args,**kwargs):
+            retval = func(*args,**kwargs)
+            if isinstance(retval,SCLError):
+                retval.trigger(line=CURRENT_LINE,note= note or "")
+            else:
+                return retval
+        return wrapper
+    return inner
+
 class SCLError:
     def __init__(self,msg:str):
         self.err_msg = msg
@@ -167,7 +178,7 @@ class SCLIsNotAFileError(SCLError):
     Raised when attempting to interact with an object other than a file
     """
 
-    def __init__(self,path: str):
+    def __init__(self, path: str):
         super().__init__(f"This '{path}' is not a file")
 
 class SCLWrongExtensionError(SCLError):
@@ -179,15 +190,15 @@ class SCLWrongExtensionError(SCLError):
     def __init__(self, filename: str):
         super().__init__(f"This '{filename}' doesn't have the correct extension '.scl'")
 
-#TODO Syntax Error
+class SCLIndexOutOfBoundError(SCLError):
+    """
+    index: the given index
+    length: the length of the iterable object
+    Raised when attempting to access an item in an iterable object
+    with an index that is out of bound
+    """
+    def __init__(self, index: int, length: int):
+        super().__init__(f"Index out of bound, index must be between 0 and {length}, got {index}")
 
-def dangerous(note=None):
-    def inner(func):
-        def wrapper(*args,**kwargs):
-            retval = func(*args,**kwargs)
-            if isinstance(retval,SCLError):
-                retval.trigger(line=CURRENT_LINE,note= note or "")
-            else:
-                return retval
-        return wrapper
-    return inner
+
+#TODO Syntax Error
