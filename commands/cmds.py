@@ -239,8 +239,10 @@ def help_f(args: list[ps.Token]):
             print(manuals.GET)
         case 'mod':
             print(manuals.MOD)
+        case 'len':
+            print(manuals.LEN)
         case 'list':
-            print("dp, dpl, loop, new, set, stt, end, clr, del, exec, add, sub, mul, div, pow, help, fun, ret, call, read, arr, get, mod")
+            print("dp, dpl, loop, new, set, stt, end, clr, del, exec, add, sub, mul, div, pow, help, fun, ret, call, read, arr, get, mod, len")
         case _:
             return errors.SCLError("Unknown Command, either it does not exist or there is no manual for it")
 
@@ -352,3 +354,14 @@ def mod_f(args: list[ps.Token]):
         else:
             new_v = al.DT_TYPES.guess_type(new_v_tok.value).convert_str_to_value(new_v_tok.value)
     iter.set_at_index(idx,new_v)
+
+def len_f(args: list[ps.Token]):
+    iter_tok = ps.try_get([ps.TokenType.ARG], 0, args)
+    iter = ev.get_from_id(iter_tok.value)
+    if not issubclass(type(iter), al.Iterable):
+        return errors.SCLNotIterableError(iter_tok.value)
+    dest_tok = ps.try_get([ps.TokenType.ARG], 1, args)
+    dest = ev.get_from_id(dest_tok.value)
+    if dest.type != al.DT_TYPES.INT:
+        return errors.SCLWrongTypeError(al.DT_TYPES.INT.__repr__(), dest.type.__repr__())
+    dest.set_value(iter.length)

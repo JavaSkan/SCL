@@ -95,6 +95,9 @@ GET     = '>>> Gets a value from an iterable object at a certain index\n' + \
           ' -compatible with variable referencing (at <index>)'
 
 MOD     = '>>> Modifies a value at a certain index in an iterable object\n' + \
-          'Syntax: set <iterable> <index> <new_value>\n' + \
+          'Syntax: mod <iterable> <index> <new_value>\n' + \
           'NOTE:\n' + \
           ' -compatible with variable referencing (at <index> and <new_value>)'
+
+LEN     = '>>> Stores the length of an iterable object in a variable\n' + \
+          'Syntax: len <iterable> <destination>'

@@ -23,5 +23,6 @@ cmds = {"dp":	  cmds.display_f,
 		"arr":    cmds.array_f,
 		"get":    cmds.get_f,
 		"mod":	  cmds.mod_f,
+		"len":    cmds.len_f,
 		"":       lambda x: {}
 		}

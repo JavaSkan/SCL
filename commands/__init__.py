@@ -28,7 +28,7 @@ def safe_getv(tok: ps.Token, expected_vartype: al.DT_TYPES,isarray=False):
             return expected_vartype.convert_str_to_value(tok.value)
     return None
 
-@dangerous(note="STRICT GETV FUNCTION")
+@dangerous(note="VARIABLE REFERENCING ISSUE")
 def strict_getv(tok: ps.Token, expected_vartype: al.DT_TYPES, isarray=False):
     if tok.type == ps.TokenType.VARRF:
         var = ul.var_ref(tok.value)
