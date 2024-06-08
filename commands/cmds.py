@@ -235,8 +235,12 @@ def help_f(args: list[ps.Token]):
             print(manuals.READ)
         case 'arr':
             print(manuals.ARR)
+        case 'get':
+            print(manuals.GET)
+        case 'mod':
+            print(manuals.MOD)
         case 'list':
-            print("dp, dpl, loop, new, set, stt, end, clr, del, exec, add, sub, mul, div, pow, help, fun, ret, call, read")
+            print("dp, dpl, loop, new, set, stt, end, clr, del, exec, add, sub, mul, div, pow, help, fun, ret, call, read, arr, get, mod")
         case _:
             return errors.SCLError("Unknown Command, either it does not exist or there is no manual for it")
 
@@ -332,4 +336,19 @@ def get_f(args: list[ps.Token]):
     dest.set_value(iter.get_at_index(idx))
 
 def mod_f(args: list[ps.Token]):
-    pass
+    iter_tok = ps.try_get([ps.TokenType.ARG], 0, args)
+    iter = ev.get_from_id(iter_tok.value)
+    if not issubclass(type(iter), al.Iterable):
+        return errors.SCLNotIterableError(iter_tok.value)
+    idx_tok = ps.try_get(make_value(ps.TokenType.INT), 1, args)
+    idx = strict_getv(idx_tok, al.DT_TYPES.INT)
+    if iter.type != al.DT_TYPES.ANY:
+        new_v_tok = ps.try_get(commands.make_value(iter.type.get_literal_version()), 2, args)
+        new_v = strict_getv(new_v_tok, iter.type)
+    else:
+        new_v_tok = ps.try_get(commands.make_value(*parser.tokens.all_literals()), 2, args)
+        if new_v_tok.type == ps.TokenType.VARRF:
+            new_v = ul.var_ref(new_v_tok.value).get_value()
+        else:
+            new_v = al.DT_TYPES.guess_type(new_v_tok.value).convert_str_to_value(new_v_tok.value)
+    iter.set_at_index(idx,new_v)

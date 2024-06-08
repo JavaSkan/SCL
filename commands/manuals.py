@@ -88,3 +88,13 @@ ARR     = '>>> Creates an array\n' + \
           'Syntax: arr new <type> <name> <values>\n' + \
           'NOTE:\n' + \
           ' -compatible with variable referencing (at <values>)'
+
+GET     = '>>> Gets a value from an iterable object at a certain index\n' + \
+          'Syntax: get <iterable> <index> <destination>\n' + \
+          'NOTE:\n' + \
+          ' -compatible with variable referencing (at <index>)'
+
+MOD     = '>>> Modifies a value at a certain index in an iterable object\n' + \
+          'Syntax: set <iterable> <index> <new_value>\n' + \
+          'NOTE:\n' + \
+          ' -compatible with variable referencing (at <index> and <new_value>)'
