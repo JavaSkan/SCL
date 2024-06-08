@@ -153,6 +153,10 @@ class Iterable:
         else:
             return err.SCLIndexOutOfBoundError(index, self.length)
 
+    def get_items_gen(self):
+        for e in self.items:
+            yield e
+
 class Allocable:
 
     def __init__(self, type: DT_TYPES, ident:str, value):

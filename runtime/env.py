@@ -4,13 +4,19 @@ _VARS = []            #variables
 _FUN_RET = None       #Function return
 _ERR_CODE = 0         #Error Code
 
+def exists(identifier: str) -> bool:
+    for v in _VARS:
+        if v.ident == identifier:
+            return True
+    return False
+
 @err.dangerous()
 def alloc(element):
-    if not element in _VARS:
+    if not (element.ident in [(existing_e := e).ident for e in _VARS]):
         element.maddr = len(_VARS)-1
         _VARS.append(element)
     else:
-        return err.SCLAlreadyExistingError(element.ident,element)
+        return err.SCLAlreadyExistingError(element.ident,existing_e)
 
 @err.dangerous()
 def de_alloc(element):

@@ -101,3 +101,6 @@ MOD     = '>>> Modifies a value at a certain index in an iterable object\n' + \
 
 LEN     = '>>> Stores the length of an iterable object in a variable\n' + \
           'Syntax: len <iterable> <destination>'
+
+FOREACH = '>>> Iterate over each element in an iterable object\n' + \
+          'Syntax: foreach <element> in <iterable> {instructions}\n'

@@ -239,8 +239,10 @@ def help_f(args: list[ps.Token]):
             print(manuals.MOD)
         case 'len':
             print(manuals.LEN)
+        case 'foreach':
+            print(manuals.FOREACH)
         case 'list':
-            print("dp, dpl, loop, new, set, stt, end, clr, del, exec, add, sub, mul, div, pow, help, fun, ret, call, read, arr, get, mod, len")
+            print("dp, dpl, loop, new, set, stt, end, clr, del, exec, add, sub, mul, div, pow, help, fun, ret, call, read, arr, get, mod, len, foreach")
         case _:
             return errors.SCLError("Unknown Command, either it does not exist or there is no manual for it")
 
@@ -363,3 +365,27 @@ def len_f(args: list[ps.Token]):
     if dest.type != al.DT_TYPES.INT:
         return errors.SCLWrongTypeError(al.DT_TYPES.INT.__repr__(), dest.type.__repr__())
     dest.set_value(iter.length)
+
+def foreach_f(args: list[ps.Token]):
+    element_ident = ps.try_get([ps.TokenType.ARG],0,args).value
+    in_kw_tok = ps.try_get([ps.TokenType.ARG],1,args)
+    if not in_kw_tok.has_specific_value(kws.foreach_kws):
+        return errors.SCLError(f"Syntax Error: expected argument with specific value in {kws.foreach_kws}, got {in_kw_tok.value}")
+    iter_tok = ps.try_get([ps.TokenType.ARG],2,args)
+    iter = ev.get_from_id(iter_tok.value)
+    if not issubclass(type(iter),al.Iterable):
+        return errors.SCLNotIterableError(iter_tok.value)
+    body_tok = ps.try_get([ps.TokenType.BODY],3,args)
+    instructions = body_tok.value
+
+    element = al.Variable(al.VARKIND.MUT,iter.type,element_ident,iter.type.default_value())
+    ev.alloc(
+        element
+    )
+    for e in iter.get_items_gen():
+        element.set_value(e)
+        for ins in instructions:
+            exe.execute(ins)
+    ev.de_alloc(
+        element
+    )

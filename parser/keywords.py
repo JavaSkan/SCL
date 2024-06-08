@@ -24,3 +24,7 @@ new_cmd_varkind_kws = {
     'temp',
     'mut'
 }
+
+foreach_kws = {
+    'in'
+}
