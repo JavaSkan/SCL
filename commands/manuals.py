@@ -46,10 +46,12 @@ DEL     = '>>> Deletes a variable\n' + \
           'Syntax: del <name>'
 
 EXEC    = '>>> Executes SCl script\n' + \
-          'Syntax: exec <file_name_with_extension>'+ \
+          'Syntax: exec <file_name_with_extension> <multi_line?>'+ \
           'NOTE:\n' + \
-          ' -compatible with variable referencing (at <file_name_with_extension> argument)' + \
-          ' -<file_name_with_extension> should be a string literal'
+          ' -compatible with variable referencing (at <file_name_with_extension> argument)\n' + \
+          ' -<file_name_with_extension> should be a string literal\n' + \
+          ' -<multi_line> is a boolean literal, if it is false then commands are considered separated by line breaks \'\\n\', if true\n' + \
+          ' then they are considered separated by semicolons \';\''
 
 OPERTS  = '>>> Performs the wanted operation\n' + \
           'Syntax: add|sub|mul|div|pow <name> <value>\n' + \

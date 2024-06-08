@@ -124,7 +124,7 @@ class Parser(Indexed):
                 case TokenType.LCBK:
                     t = self.parse_body()
                     buf.append(t)
-                case TokenType.SMCL:
+                case TokenType.CMA:
                     content.append(buf.copy())
                     buf.clear()
                 case TokenType.RCBK:

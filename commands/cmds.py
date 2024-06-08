@@ -112,7 +112,7 @@ def set_f(args: list[ps.Token]):
 
 def execute_f(args: list[ps.Token]):
     path_tok = ps.try_get(commands.make_value(ps.TokenType.STR), 0, args)
-
+    parse_multiline = ps.try_get([ps.TokenType.BOOL],1,args).evaluate()
     path: str = path_tok.value
     if not os.path.exists(path):
         return errors.SCLNotExistingPathError(path)
@@ -121,7 +121,7 @@ def execute_f(args: list[ps.Token]):
     if not path.endswith('.scl'):
         return errors.SCLWrongExtensionError(path)
     with open(path,'r',encoding="utf-8-sig") as script:
-        lines = script.read().split('\n')
+        lines = script.read().split('\n' if not parse_multiline else ';')
         for line in lines:
             exe.execute(line)
 

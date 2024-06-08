@@ -1,5 +1,6 @@
 from .tokens import Token, TokenType
 from .indexed import Indexed
+from string import whitespace
 
 class Lexer(Indexed):
     def __init__(self, string_input: str) -> None:
@@ -102,7 +103,7 @@ class Lexer(Indexed):
                     p.append(Token(TokenType.AT, self.cur()))
                 case '$':
                     p.append(Token(TokenType.DLR, self.cur()))
-                case ' ':
+                case c if c in whitespace:
                     pass
                 case _:
                     p.append(Token(TokenType.UNK, self.cur()))
