@@ -42,7 +42,7 @@ class TokenType(Enum):
     BODY = auto()  # Body scope         {...}
     TUPLE = auto()  # Tuple              (...)
     ARR = auto()  # Array literal      [...]
-    VARRF = auto()  # Variable reference @<IDT>
+    VARRF = auto()  # Variable reference $<IDT>
 
     def __repr__(self) -> str:
         return self.name

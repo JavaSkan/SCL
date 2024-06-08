@@ -4,7 +4,6 @@ from .tokens import TokenType, Token
 from .indexed import Indexed
 from . import keywords
 
-
 @dangerous(note="[PARSING] TOKEN MISMATCH")
 def try_get(tokentypes:list[TokenType], position:int, args:list[Token]) -> (Token | None, errors.SCLError):
     #import errors  # avoid circular import

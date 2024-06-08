@@ -10,6 +10,8 @@ from . import manuals
 
 from . import *
 
+#TODO iterable commands like 'get <iterable> <index> <dest>' and 'mod <iterable> <index> <new>'
+
 def display_f(args: list[ps.Token]):
     for i,arg in enumerate(args):
         printed = arg.value if arg.type != ps.TokenType.VARRF else ul.var_ref_str(arg.value)
@@ -51,7 +53,7 @@ def new_f(args: list[ps.Token]):
 
     varname_tok = ps.try_get([ps.TokenType.ARG],2,args)
     if not ul.is_valid_name(varname_tok.value):
-        return errors.SCLInvalidNameError(varname_tok.value)
+        return errors.SCLInvalidIdentError(varname_tok.value)
     varname: str = varname_tok.value
 
     value_tok = ps.try_get(commands.make_value(*parser.tokens.all_literals()), 3, args)
@@ -310,8 +312,24 @@ def array_f(args: list[ps.Token]):
                     new_arr
                 )
             else:
-                return errors.SCLInvalidNameError(name_tok.value)
+                return errors.SCLInvalidIdentError(name_tok.value)
         else:
             return errors.SCLUnknownTypeError(type_tok.value)
     else:
         return errors.SCLError(f"Syntax Error: expected argument with specific value in {kws.arr_cmd_operations}, got {oper_tok.value}")
+
+def get_f(args: list[ps.Token]):
+    iter_tok = ps.try_get([ps.TokenType.ARG],0,args)
+    iter = ev.get_from_id(iter_tok.value)
+    if not issubclass(type(iter),al.Iterable):
+        return errors.SCLNotIterableError(iter_tok.value)
+    idx_tok = ps.try_get(make_value(ps.TokenType.INT),1,args)
+    idx = strict_getv(idx_tok,al.DT_TYPES.INT)
+    dest_tok = ps.try_get([ps.TokenType.ARG],2,args)
+    dest = ev.get_from_id(dest_tok.value)
+    if dest.type != iter.type:
+        return errors.SCLWrongTypeError(iter.type.__repr__(),dest.type.__repr__())
+    dest.set_value(iter.get_at_index(idx))
+
+def mod_f(args: list[ps.Token]):
+    pass

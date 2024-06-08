@@ -21,5 +21,6 @@ cmds = {"dp":	  cmds.display_f,
 		"call":	  cmds.call_f,
 		"read":   cmds.read_f,
 		"arr":    cmds.array_f,
+		"get":    cmds.get_f,
 		"":       lambda x: {}
 		}

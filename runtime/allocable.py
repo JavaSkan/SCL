@@ -140,11 +140,13 @@ class Iterable:
         self.items = items
         self.length = len(self.items)
 
+    @err.dangerous("[RUNTIME] GET VALUE FROM ITERABLE")
     def get_at_index(self, index: int):
         if 0 <= index < self.length:
             return self.items[index]
         return err.SCLIndexOutOfBoundError(index, self.length)
 
+    @err.dangerous("[RUNTIME] SET VALUE IN ITERABLE")
     def set_at_index(self,index: int, value):
         if 0 <= index < self.length:
             self.items[index] = value
