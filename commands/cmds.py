@@ -10,12 +10,10 @@ from . import manuals
 
 from . import *
 
-#TODO iterable commands like 'get <iterable> <index> <dest>' and 'mod <iterable> <index> <new>'
-
 def display_f(args: list[ps.Token]):
     for i,arg in enumerate(args):
         printed = arg.value if arg.type != ps.TokenType.VARRF else ul.var_ref_str(arg.value)
-        print(printed,end=(" " if i < len(args)-1 else ""))
+        print(printed,end="")
 
 def displayl_f(args: list[ps.Token]):
     try:
@@ -122,7 +120,7 @@ def execute_f(args: list[ps.Token]):
         return errors.SCLIsNotAFileError(path)
     if not path.endswith('.scl'):
         return errors.SCLWrongExtensionError(path)
-    with open(path,'r') as script:
+    with open(path,'r',encoding="utf-8-sig") as script:
         lines = script.read().split('\n')
         for line in lines:
             exe.execute(line)
