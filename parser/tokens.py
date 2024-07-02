@@ -42,7 +42,10 @@ class TokenType(Enum):
     BODY = auto()  # Body scope         {...}
     TUPLE = auto()  # Tuple              (...)
     ARR = auto()  # Array literal      [...]
+
+    #Post parsing
     VARRF = auto()  # Variable reference $<IDT>
+    DECL  = auto()  # Declaration <type> <arg>
 
     def __repr__(self) -> str:
         return self.name
@@ -55,19 +58,14 @@ class Token:
         self.value = value
 
     def __repr__(self) -> str:
-        """v = '\n'
-        if self.t in {TokenType.ARR,TokenType.BODY,TokenType.TUPLE}:
-            for e in self.v:
-                v += f"\t{' '.join([t.__repr__() for t in e])}\n"
-            return f"{self.t.__repr__()}:[{v}]"""
-        return f"{self.type.__repr__()}:'{self.value}'"
+        return f"{self.type.__repr__()}:{self.value}"
 
     def has_specific_value(self,values) -> bool:
         return self.value in values
 
     def is_empty_tuple(self) -> bool:
         if self.type == TokenType.TUPLE:
-            return len(self.value) == 1 and len(self.value[0]) == 0
+            return len(self.value) == 0
         return False
 
     def evaluate(self):
@@ -80,6 +78,9 @@ class Token:
                 return self.value
             case TokenType.BOOL:
                 return self.value == 'true' or not (self.value == 'false')
+            case TokenType.ARR:
+                from parser.parsing import parse_array_values
+                return parse_array_values(self)
             case _:
                 return self
 

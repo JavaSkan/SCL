@@ -40,13 +40,13 @@ def loop_f(args: list[ps.Token]):
 
 def new_f(args: list[ps.Token]):
     varkind_tok = ps.try_get([ps.TokenType.ARG],0,args)
-    if not varkind_tok.has_specific_value(kws.new_cmd_varkind_kws):
-        return errors.SCLError(f"Syntax Error: expected argument with specific value in {kws.new_cmd_varkind_kws}, got {varkind_tok.value}")
+    if not varkind_tok.has_specific_value(kws.varkinds):
+        return errors.SCLError(f"Syntax Error: expected argument with specific value in {kws.varkinds}, got {varkind_tok.value}")
     varkind: str = varkind_tok.value
 
     vartype_tok = ps.try_get([ps.TokenType.ARG],1,args)
-    if not vartype_tok.has_specific_value(kws.data_types_keywords):
-        return errors.SCLError(f"Syntax Error: expected argument with specific value in {kws.data_types_keywords}, got {varkind_tok.value}")
+    if not vartype_tok.has_specific_value(kws.basic_datatypes):
+        return errors.SCLError(f"Syntax Error: expected argument with specific value in {kws.basic_datatypes}, got {varkind_tok.value}")
     vartype: str = vartype_tok.value
 
     varname_tok = ps.try_get([ps.TokenType.ARG],2,args)
@@ -71,7 +71,7 @@ def state_f(args: list[ps.Token]):
     nea = ps.no_extra_args(args)
     if nea:
         return nea
-    print(f"ALLOCATIONS : {ev._VARS}")
+    print(f"ALLOCATIONS : {ev._ALCS}")
     print(f"ERROR_CODE: {ev._ERR_CODE}")
     print(f"FUNCTION RETURN VALUE : {ev._FUN_RET}")
 
@@ -93,7 +93,7 @@ def clear_f(args: list[ps.Token]):
     nea = ps.no_extra_args(args)
     if nea:
         return nea
-    ev._VARS.clear()
+    ev._ALCS.clear()
 
 def delete_f(args: list[ps.Token]):
     ident_tok = ps.try_get([ps.TokenType.ARG],0,args)
@@ -121,7 +121,7 @@ def execute_f(args: list[ps.Token]):
     if not path.endswith('.scl'):
         return errors.SCLWrongExtensionError(path)
     with open(path,'r',encoding="utf-8-sig") as script:
-        lines = script.read().split('\n' if not parse_multiline else ';')
+        lines = script.read().split('\n' if not parse_multiline else '!')
         for line in lines:
             exe.execute(line)
 
@@ -249,15 +249,15 @@ def help_f(args: list[ps.Token]):
 def fun_f(args: list[ps.Token]):
     type_tok = ps.try_get([ps.TokenType.ARG],0,args)
 
-    if not type_tok.has_specific_value(kws.funret_data_types_keywords):
-        return errors.SCLError(f"Syntax Error: expected argument with specific value in {kws.funret_data_types_keywords}, got {type_tok.value}")
+    if not type_tok.has_specific_value(kws.return_datatypes):
+        return errors.SCLError(f"Syntax Error: expected argument with specific value in {kws.return_datatypes}, got {type_tok.value}")
     ftype: al.DT_TYPES = al.DT_TYPES.str_to_type(type_tok.value)
     name_tok = ps.try_get([ps.TokenType.ARG],1,args)
 
     name :str = name_tok.value
     params_tok = ps.try_get([ps.TokenType.TUPLE], 2, args)
 
-    params = params_tok.value if not params_tok.is_empty_tuple() else None
+    params = ps.check_formal_parameters(params_tok) if not params_tok.is_empty_tuple() else None
 
     body_tok = ps.try_get([ps.TokenType.BODY],3,args)
 
@@ -267,12 +267,11 @@ def fun_f(args: list[ps.Token]):
 def call_f(args: list[ps.Token]):
     name_tok = ps.try_get([ps.TokenType.ARG],0,args)
 
-    if not (fun := ev.get_from_id(name_tok.value)):
-        return errors.SCLNotFoundError(name_tok.value)
+    fun = ev.get_from_id(name_tok.value)
     if not type(fun) is al.Function:
         return errors.SCLNotCallableError(name_tok.value)
     effective_params_tok = ps.try_get([ps.TokenType.TUPLE], 1, args)
-    eff_params = ps.parse_effective_param(effective_params_tok)
+    eff_params = ps.check_effective_param(effective_params_tok)
     return fun.execute_fun(eff_params)
 
 
@@ -280,10 +279,10 @@ def ret_f(args: list[ps.Token]):
     vtok = ps.try_get(commands.make_value(*parser.tokens.all_literals()), 0, args)
 
     if vtok.type == ps.TokenType.VARRF:
-        if (val := ul.var_ref_str(vtok.value)):
+        if (val := ul.var_ref(vtok.value).get_value()):
             ev._FUN_RET = val
     else:
-        ev._FUN_RET = vtok.value
+        ev._FUN_RET = vtok.evaluate()
 
 def read_f(args: list[ps.Token]):
     vartok = ps.try_get([ps.TokenType.ARG],0,args)
@@ -300,7 +299,7 @@ def array_f(args: list[ps.Token]):
     oper_tok = ps.try_get([ps.TokenType.ARG],0,args)
     if oper_tok.has_specific_value("new"):
         type_tok = ps.try_get([ps.TokenType.ARG],1,args)
-        if type_tok.has_specific_value(kws.arr_types_keywords):
+        if type_tok.has_specific_value(kws.arr_types):
             name_tok = ps.try_get([ps.TokenType.ARG],2,args)
             if ul.is_valid_name(name_tok.value):
                 values_tok = ps.try_get(make_value(TokenType.ARR),3,args)
@@ -322,7 +321,7 @@ def array_f(args: list[ps.Token]):
         else:
             return errors.SCLUnknownTypeError(type_tok.value)
     else:
-        return errors.SCLError(f"Syntax Error: expected argument with specific value in {kws.arr_cmd_operations}, got {oper_tok.value}")
+        return errors.SCLError(f"Syntax Error: expected argument with specific value in {kws.arr_opts}, got {oper_tok.value}")
 
 def get_f(args: list[ps.Token]):
     iter_tok = ps.try_get([ps.TokenType.ARG],0,args)
@@ -369,8 +368,8 @@ def len_f(args: list[ps.Token]):
 def foreach_f(args: list[ps.Token]):
     element_ident = ps.try_get([ps.TokenType.ARG],0,args).value
     in_kw_tok = ps.try_get([ps.TokenType.ARG],1,args)
-    if not in_kw_tok.has_specific_value(kws.foreach_kws):
-        return errors.SCLError(f"Syntax Error: expected argument with specific value in {kws.foreach_kws}, got {in_kw_tok.value}")
+    if not in_kw_tok.has_specific_value(kws.foreach_opts):
+        return errors.SCLError(f"Syntax Error: expected argument with specific value in {kws.foreach_opts}, got {in_kw_tok.value}")
     iter_tok = ps.try_get([ps.TokenType.ARG],2,args)
     iter = ev.get_from_id(iter_tok.value)
     if not issubclass(type(iter),al.Iterable):

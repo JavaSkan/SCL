@@ -46,7 +46,7 @@ class SCLFunArgsMismatchError(SCLError):
     """
     nan: number of arguments needed
     nap: number of arguments provided
-    Raised when there is an argument mismatch using functions
+    Raised when the number of the function arguments is not equal to the number of the functions' parameters
     """
     def __init__(self,nan:int,nap:int) -> None:
         self.msg = "Function arguments don't match: " + (f"provided {nap - nan} extra argument(s)" if nap > nan
@@ -110,11 +110,10 @@ class SCLWrongReturnTypeError(SCLError):
 class SCLNoReturnValueError(SCLError):
     """
     funident: function identifier
-    vtret: return value's type
     Raised when attempting to return a value and the function is of type nil
     """
-    def __init__(self, funident: str, vtret: str):
-        super().__init__(f"Function '{funident}' must return nothing, returned '{vtret}' instead (check the function definition)")
+    def __init__(self, funident: str):
+        super().__init__(f"Function '{funident}' must return nothing (check the function definition)")
 
 class SCLWrongOperationError(SCLError):
     """
@@ -165,7 +164,7 @@ class SCLAlreadyExistingError(SCLError):
     Raised when attempting to alloc a variable with a taken identifier
     """
     def __init__(self, identifier: str, allocable):
-        super().__init__(f"Identifier '{identifier}' is already taken: {allocable}")
+        super().__init__(f"Identifier '{identifier}' is already taken: {allocable.__repr__()}")
 
 class SCLNotExistingPathError(SCLError):
     """
@@ -209,5 +208,23 @@ class SCLNotIterableError(SCLError):
     """
     def __init__(self, identifier: str):
         super().__init__(f"'{identifier}' is not an iterable object")
+
+class SCLInvalidFormalParameterError(SCLError):
+
+    """
+    tokentype_name: the name of the token type provided
+    Raised when parsing formal parameters and getting a token other than a declaration
+    """
+    def __init__(self,tokentype_name: str):
+        super().__init__(f"Formal parameter should be a declaration (<type> <name>), got token of type '{tokentype_name}'")
+
+class SCLInvalidEffectiveParameterError(SCLError):
+
+    """
+    tokentype_name: the name of the token type provided
+    Raised when parsing effective parameters and getting a token other than a literal, a variable reference or an array
+    """
+    def __init__(self,tokentype_name: str):
+        super().__init__(f"Formal parameter should be a literal, a variable reference or an array, got token of type '{tokentype_name}'")
 
 #TODO Syntax Error

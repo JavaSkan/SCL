@@ -22,41 +22,39 @@ def no_extra_args(args: list[Token]):
         return errors.SCLArgsMismatchError(extra=f"Extra arguments provided, please check the command syntax")
     return None
 
+"""
+Returns a list of length 2 that contains a type name and an identifier
+"""
 @dangerous(note="[PARSER-ERR] PARSING FORMAL PARAMETERS")
-def parse_formal_params(args: list[Token]) -> (str,str):
-    if len(args) == 0:
-        return ("","")
-    type_tok: Token = try_get([TokenType.ARG],0,args)
-    if not type_tok.has_specific_value(keywords.data_types_keywords):
-        return errors.SCLUnknownTypeError(type_tok.value)
-    name_tok: Token = try_get([TokenType.ARG], 1, args)
-    return type_tok.value,name_tok.value
+def check_formal_parameters(parameters: Token):
+    res = []
+    for parameter in parameters.value:
+        if not parameter.type == TokenType.DECL:
+            return errors.SCLInvalidFormalParameterError(parameter.type.__repr__())
+        res.append([parameter.value[0].value,parameter.value[1].value])
+    return res
 
 """
 Parses Effective parameters, takes a tuple token <tok>
 and returns the first parsed token of each part of the tuple
 """
-def parse_effective_param(tok: Token) -> list[Token]:
+@dangerous(note="[PARSER-ERR] PARSING EFFECTIVE PARAMETERS")
+def check_effective_param(parameters: Token):
     res = []
-    p = Parser([])
-    for toks in tok.value:
-        p.reset(toks)
-        if len(toks) == 0:
-            continue
-        res.append(p.parse()[0])
+    for parameter in parameters.value:
+        if not parameter.type in {TokenType.INT, TokenType.FLT, TokenType.BOOL, TokenType.STR, TokenType.ARR,TokenType.VARRF}:
+            return errors.SCLInvalidEffectiveParameterError(parameter.type.__repr__())
+        res.append(parameter)
     return res
 
 """
-Parses arrays values into real python values
+tok: Should be of tokentype ARR
+Parses array token to real python values
 """
 def parse_array_values(tok: Token) -> list:
     res = []
-    p = Parser([])
-    for toks in tok.value:
-        p.reset(toks)
-        if len(toks) == 0:
-            continue
-        res.append(p.parse()[0].evaluate())
+    for vt in tok.value:
+        res.append(vt.evaluate())
     return res
 
 class Parser(Indexed):
@@ -64,26 +62,68 @@ class Parser(Indexed):
     def __init__(self, tokens: list[Token]) -> None:
         super().__init__(tokens)
 
+    def parse_dec(self) -> Token:
+        if not self.cur().has_specific_value(keywords.fml_prm_datatypes):
+            print(f"'{self.cur().value}' is not a valid type")
+            quit()
+        content = [self.cur()]
+        if self.has_next() and self.next().type == TokenType.ARG:
+            self.advance()
+            content.append(self.cur())
+            return Token(TokenType.DECL,content)
+        print(f"Second part should be an argument token type")
+        quit()
+
+
     def parse_tuple(self) -> Token:
         content = []
-        buf = []
+        separated = False
         closed = False
         while self.has_next():
             self.advance()
             match self.cur().type:
-                case TokenType.LPAR:
-                    t = self.parse_tuple()
-                    buf.append(t)
+                #literals
+                case TokenType.INT | TokenType.FLT | TokenType.STR | TokenType.BOOL:
+                    content.append(self.cur())
+                #negative numbers
+                case TokenType.MINUS:
+                    rs = self.parse_neg()
+                    if rs.type == TokenType.MINUS:
+                        print("Invalid Token For Tuple Content", self.cur())
+                        quit()
+                    content.append(rs)
+                #parsing declaration
+                case TokenType.ARG:
+                    t = self.parse_dec()
+                    if t.type == TokenType.ARG:
+                        print("Invalid Token For Tuple Content", self.cur())
+                        quit()
+                    content.append(t)
+                #variable referencing
+                case TokenType.DLR:
+                    rs = self.parse_varref()
+                    if rs.type == TokenType.DLR:
+                        print("Invalid Token For Tuple Content", self.cur())
+                        quit()
+                    content.append(rs)
+                #arrays
+                case TokenType.LBRK:
+                    t = self.parse_arr()
+                    content.append(t)
                 case TokenType.CMA:
-                    content.append(buf.copy())
-                    buf.clear()
+                    separated = True
                 case TokenType.RPAR:
                     closed = True
                     break
                 case _:
-                    buf.append(self.cur())
+                    print("Invalid Token For Tuple Content", self.cur())
+                    quit()
+            if self.has_next() and self.next().type != TokenType.CMA and self.next().type != TokenType.RPAR and not separated:
+                print(f"Missing a comma at position {self.ix + 1}")
+                quit()
+            else:
+                separated = False
         if closed:
-            content.append(buf.copy())
             return Token(TokenType.TUPLE, content)
         else:
             print("Right Parent Missing at", self.ix + 1)
@@ -91,24 +131,46 @@ class Parser(Indexed):
 
     def parse_arr(self) -> Token:
         content = []
-        buf = []
+        separated = False
         closed = False
         while self.has_next():
             self.advance()
             match self.cur().type:
+                #literals
+                case TokenType.STR | TokenType.INT | TokenType.FLT | TokenType.BOOL:
+                    content.append(self.cur())
+                #negative numbers
+                case TokenType.MINUS:
+                    rs = self.parse_neg()
+                    if rs.type == TokenType.MINUS:
+                        print("Invalid Token For Array Value", self.cur())
+                        quit()
+                    content.append(rs)
+                #variable referencing
+                case TokenType.DLR:
+                    rs = self.parse_varref()
+                    if rs.type == TokenType.DLR:
+                        print("Invalid Token For Array Value", self.cur())
+                        quit()
+                    content.append(rs)
+                #arrays
                 case TokenType.LBRK:
                     t = self.parse_arr()
-                    buf.append(t)
+                    content.append(t)
                 case TokenType.CMA:
-                    content.append(buf.copy())
-                    buf.clear()
+                    separated = True
                 case TokenType.RBRK:
                     closed = True
                     break
                 case _:
-                    buf.append(self.cur())
+                    print("Invalid Token", self.cur())
+                    quit()
+            if self.has_next() and self.next().type != TokenType.CMA and self.next().type != TokenType.RBRK and not separated:
+                print(f"Missing a comma at position {self.ix + 1}")
+                quit()
+            else:
+                separated = False
         if closed:
-            content.append(buf.copy())
             return Token(TokenType.ARR, content)
         else:
             print("Right Bracket Missing at", self.ix + 1)
@@ -124,7 +186,7 @@ class Parser(Indexed):
                 case TokenType.LCBK:
                     t = self.parse_body()
                     buf.append(t)
-                case TokenType.CMA:
+                case TokenType.SMCL:
                     content.append(buf.copy())
                     buf.clear()
                 case TokenType.RCBK:

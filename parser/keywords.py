@@ -1,30 +1,47 @@
 """
-Definition of SCL KeyWords
+Definition of SCL Keywords
 """
 
-data_types_keywords = {
+#Basic datatypes
+basic_datatypes = {
     'int',
     'flt',
     'str',
     'bool'
 }
 
-arr_cmd_operations = {
+#Complex datatypes
+complex_datatypes = {
+    'arr',
+    'any'
+}
+
+#array command options
+arr_opts = {
     'new'
 }
 
-funret_data_types_keywords = data_types_keywords.copy()
-funret_data_types_keywords.add('nil')
+#all possible types of a return value
+return_datatypes = basic_datatypes.copy()
+return_datatypes.add('any')
+return_datatypes.add('nil')
 
-arr_types_keywords = data_types_keywords.copy()
-arr_types_keywords.add('any')
+#all possible types of arrays
+arr_types = basic_datatypes.copy()
+arr_types.add('any')
 
-new_cmd_varkind_kws = {
+#all possible types of function formal parameters
+fml_prm_datatypes = basic_datatypes.copy()
+fml_prm_datatypes.update(complex_datatypes)
+
+#all variable kinds
+varkinds = {
     'const',
     'temp',
     'mut'
 }
 
-foreach_kws = {
+#foreach command options
+foreach_opts = {
     'in'
 }

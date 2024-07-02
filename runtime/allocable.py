@@ -1,10 +1,10 @@
 from enum import Enum, auto
 
+import parser.parsing
 from runtime import errors as err, env as ev
 from runtime.execution import execute
-from parser.parsing import TokenType, Token, parse_formal_params
+from parser.parsing import TokenType, Token, check_formal_parameters
 #TODO implement boolean system
-#TODO create a class called iterable as a mother-class of a string variable and arrays
 
 class DT_TYPES(Enum):
 
@@ -43,10 +43,11 @@ class DT_TYPES(Enum):
                 return DT_TYPES.STR
             case 'bool':
                 return DT_TYPES.BOOL
-            case 'any':
-                return DT_TYPES.ANY
             case 'nil':
                 return DT_TYPES.NIL
+            # 'any' or anything other
+            case _:
+                return DT_TYPES.ANY
 
     def guess_type(str_value: str):
         if str_value.isdigit() or str_value.startswith('-') and str_value[1:].isdigit():
@@ -165,6 +166,9 @@ class Allocable:
         self.ident = ident
         self.vl = value
 
+    def __repr__(self):
+        return f"[{self.type} {self.ident}: {self.vl}]"
+
     def get_value(self):
         return self.vl
 
@@ -212,7 +216,7 @@ class Array(Allocable,Iterable):
 
 class Function(Allocable):
 
-    def __init__(self, type:DT_TYPES,ident:str, params:list[Token] | None, body:list[str]):
+    def __init__(self, type:DT_TYPES, ident:str, params, body:list[str]):
         self.pm = [] if params == None else params
         self.bd = body
         self.locals = []
@@ -223,52 +227,65 @@ class Function(Allocable):
     def __repr__(self):
         return f"Function:('{self.ident}':{self.vl})"
 
-    def init_params(self):
-        for p in self.pm:
-            type,name = parse_formal_params(p)
-            self.locals.append(Variable(VARKIND.MUT,DT_TYPES.str_to_type(type),name,None))
-            ev.alloc(self.locals[len(self.locals)-1])
+    def new_local(self,local: Allocable):
+        ev.alloc(local)
+        self.locals.append(local)
 
     """
     To set params when the function is called
     """
+    @err.dangerous()
     def set_params(self,efpars):
-        if len(efpars) != len(self.locals):
+        if len(efpars) != len(self.pm):
             return err.SCLFunArgsMismatchError(len(self.locals),len(efpars))
-        for (i,e) in enumerate(efpars):
-            tok = e
+        for (i,tok) in enumerate(efpars):
+            current_type = DT_TYPES.str_to_type(self.pm[i][0])
+            current_idt  = self.pm[i][1]
             if tok.type == TokenType.VARRF:
                 vr = ev.get_from_id(tok.value)
-                if not vr.type == self.locals[i].type:
-                    err.SCLWrongTypeError(self.locals[i].type.__repr__(),vr.type.__repr__()).trigger()
+                if not vr.type == current_type and current_type != DT_TYPES.ANY:
+                    return err.SCLWrongTypeError(current_type.__repr__(),vr.type.__repr__())
                 else:
-                    self.locals[i].set_value(self.locals[i].type.convert_str_to_value(vr.vl))
+                    if type(vr) is Array:
+                        self.new_local(Array(vr.type,current_idt,vr.items))
+                    else:
+                        self.new_local(
+                            Variable(VARKIND.MUT, current_type, current_idt, current_type.default_value())
+                        )
             else:
-                if not self.locals[i].type.get_literal_version() == tok.type:
-                    err.SCLWrongTypeError(self.locals[i].type.__repr__(),tok.type.__repr__()).trigger()
+                if current_type == DT_TYPES.ANY:
+                    if tok.type == TokenType.ARR:
+                        self.new_local(
+                            Array(DT_TYPES.ANY, current_idt, parser.parsing.parse_array_values(tok))
+                        )
+                    else:
+                        self.new_local(
+                            Variable(VARKIND.MUT, current_type, current_idt,
+                                     DT_TYPES.guess_type(tok.value).convert_str_to_value(tok.value))
+                        )
+                elif current_type.get_literal_version() == tok.type:
+                    self.new_local(
+                        Variable(VARKIND.MUT,current_type,current_idt,current_type.convert_str_to_value(tok.value))
+                    )
                 else:
-                    self.locals[i].set_value(self.locals[i].type.convert_str_to_value(tok.value))
-
-
-
+                    return err.SCLWrongTypeError(current_type.__repr__(),tok.type.__repr__())
 
     def del_locals(self):
         for local in self.locals:
             ev.de_alloc(local)
 
-    #arguments are var refs or literals ($x or 0 ...)
     def execute_fun(self,arguments: list[Token]):
         if self.pm != None:
-            self.init_params()
-            if self.pm != None:
-                if (setpmerr := self.set_params(arguments)):
-                    return setpmerr
+            if (setpmerr := self.set_params(arguments)):
+                return setpmerr
         for ins in self.bd:
             execute(ins)
         if ev._FUN_RET:
             if self.type == DT_TYPES.NIL:
-                return err.SCLNoReturnValueError(self.ident,DT_TYPES.guess_type(ev._FUN_RET).__repr__())
-            if self.type.is_compatible_with_type(ev._FUN_RET):
+                return err.SCLNoReturnValueError(self.ident)
+            elif self.type == DT_TYPES.ANY:
+                self.set_value(ev._FUN_RET)
+            elif self.type.is_compatible_with_type(ev._FUN_RET):
                 self.set_value(self.type.convert_str_to_value(ev._FUN_RET))
             else:
                 return err.SCLWrongReturnTypeError(self.ident,self.type.__repr__(),DT_TYPES.guess_type(ev._FUN_RET).__repr__())
