@@ -373,11 +373,13 @@ def foreach_f(args: list[ps.Token]):
     iter_tok = ps.try_get([ps.TokenType.ARG],2,args)
     iter = ev.get_from_id(iter_tok.value)
     if not issubclass(type(iter),al.Iterable):
-        return errors.SCLNotIterableError(iter_tok.value)
+        if not hasattr(iter.get_value(),'__iter__'):
+            return errors.SCLNotIterableError(iter_tok.value)
+        iter = al.Iterable(iter.get_value())
     body_tok = ps.try_get([ps.TokenType.BODY],3,args)
     instructions = body_tok.value
 
-    element = al.Variable(al.VARKIND.MUT,iter.type,element_ident,iter.type.default_value())
+    element = al.Variable(al.VARKIND.MUT,al.DT_TYPES.ANY,element_ident,None)
     ev.alloc(
         element
     )
