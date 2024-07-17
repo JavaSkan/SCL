@@ -40,7 +40,7 @@ class Lexer(Indexed):
                 'A' <= self.next().upper() <= 'Z' or ('0' <= self.next().upper() <= '9') or self.next() == '_'):
             self.advance()
             buf += self.cur()
-        return Token(TokenType.ARG, buf)
+        return Token(TokenType.IDT, buf)
 
     def parse_str(self) -> Token:
         buf = ""
@@ -49,6 +49,7 @@ class Lexer(Indexed):
         while self.has_next() and self.cur() != '"':
             buf += self.cur()
             self.advance()
+
         if self.cur() == '"':
             return Token(TokenType.STR, buf)
         else:

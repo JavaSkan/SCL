@@ -1,3 +1,5 @@
+#TODO use multiline raw strings for manuals
+
 DP =      '>>> Displays something on the screen\n'+ \
           'Syntax: dp <string of characters>\n' + \
           'NOTE:\n'+\
@@ -106,3 +108,16 @@ LEN     = '>>> Stores the length of an iterable object in a variable\n' + \
 
 FOREACH = '>>> Iterate over each element in an iterable object\n' + \
           'Syntax: foreach <element> in <iterable> {instructions}\n'
+
+IF      = """\
+>>> Executes code in the first body if the given boolean expression evaluates to true. The second
+body is executed otherwise.
+Syntax: if <boolean expression> {true section} {false section}
+NOTE: The boolean expression syntax is : b"<expression>"
+use '&' for AND
+    '|' for OR
+    '!' for NOT
+    '=' for equality
+    variable referencing (boolean variables)
+    and true or false\
+"""

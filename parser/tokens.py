@@ -4,7 +4,7 @@ from enum import Enum, auto
 class TokenType(Enum):
     # General Token Types
     UNK = -1
-    ARG = auto()  # identifier
+    IDT = auto()  # identifier
 
     # Datatypes
     INT = auto()  # integer
@@ -44,6 +44,7 @@ class TokenType(Enum):
     ARR = auto()  # Array literal      [...]
 
     #Post parsing
+    BLEXP = auto()  # Boolean expression b"<boolean expression>"
     VARRF = auto()  # Variable reference $<IDT>
     DECL  = auto()  # Declaration <type> <arg>
 
@@ -79,8 +80,8 @@ class Token:
             case TokenType.BOOL:
                 return self.value == 'true' or not (self.value == 'false')
             case TokenType.ARR:
-                from parser.parsing import parse_array_values
-                return parse_array_values(self)
+                from parser.parsing import eval_array_values
+                return eval_array_values(self)
             case _:
                 return self
 

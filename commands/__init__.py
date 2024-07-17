@@ -41,7 +41,7 @@ def strict_getv(tok: ps.Token, expected_vartype: al.DT_TYPES, isarray=False):
     else:
         if isarray:
             if tok.type == TokenType.ARR:
-                return ps.parse_array_values(tok)
+                return ps.eval_array_values(tok)
             else:
                 return errors.SCLWrongTypeError(TokenType.ARR.__repr__(),tok.type.__repr__())
         if tok.type == expected_vartype.get_literal_version():

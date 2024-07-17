@@ -1,5 +1,5 @@
 """
-Definition of SCL Keywords
+Definition of SCL Keywords and Symbols
 """
 
 #Basic datatypes
@@ -45,3 +45,11 @@ varkinds = {
 foreach_opts = {
     'in'
 }
+
+class BOOLEAN_KWS:
+    AND  = r'&'
+    OR   = r'\|'
+    EQL  = r'='
+    NOT  = r'!'
+    TRUE = r'true'
+    FALSE= r'false'

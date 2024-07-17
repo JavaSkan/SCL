@@ -5,6 +5,7 @@ import parser.tokens
 from parser import keywords as kws
 from runtime import env as ev
 from runtime import execution as exe
+from runtime.evaluation import eval_bool_expr
 from . import operations as oper
 from . import manuals
 
@@ -39,17 +40,17 @@ def loop_f(args: list[ps.Token]):
         return errors.SCLError("Expected argument of type 'boolean or integer' at position 2")
 
 def new_f(args: list[ps.Token]):
-    varkind_tok = ps.try_get([ps.TokenType.ARG],0,args)
+    varkind_tok = ps.try_get([ps.TokenType.IDT], 0, args)
     if not varkind_tok.has_specific_value(kws.varkinds):
         return errors.SCLError(f"Syntax Error: expected argument with specific value in {kws.varkinds}, got {varkind_tok.value}")
     varkind: str = varkind_tok.value
 
-    vartype_tok = ps.try_get([ps.TokenType.ARG],1,args)
+    vartype_tok = ps.try_get([ps.TokenType.IDT], 1, args)
     if not vartype_tok.has_specific_value(kws.basic_datatypes):
         return errors.SCLError(f"Syntax Error: expected argument with specific value in {kws.basic_datatypes}, got {varkind_tok.value}")
     vartype: str = vartype_tok.value
 
-    varname_tok = ps.try_get([ps.TokenType.ARG],2,args)
+    varname_tok = ps.try_get([ps.TokenType.IDT], 2, args)
     if not ul.is_valid_name(varname_tok.value):
         return errors.SCLInvalidIdentError(varname_tok.value)
     varname: str = varname_tok.value
@@ -96,12 +97,12 @@ def clear_f(args: list[ps.Token]):
     ev._ALCS.clear()
 
 def delete_f(args: list[ps.Token]):
-    ident_tok = ps.try_get([ps.TokenType.ARG],0,args)
+    ident_tok = ps.try_get([ps.TokenType.IDT], 0, args)
     var = ul.var_ref(ident_tok.value)
     ev.de_alloc(var)
 
 def set_f(args: list[ps.Token]):
-    ident_tok = ps.try_get([ps.TokenType.ARG],0,args)
+    ident_tok = ps.try_get([ps.TokenType.IDT], 0, args)
     if not (var := ul.var_ref(ident_tok.value)):
         return errors.SCLNotFoundError(ident_tok.value)
 
@@ -126,7 +127,7 @@ def execute_f(args: list[ps.Token]):
             exe.execute(line)
 
 def add_f(args: list[ps.Token]):
-    modified_tok = ps.try_get([ps.TokenType.ARG],0,args)
+    modified_tok = ps.try_get([ps.TokenType.IDT], 0, args)
 
     if not (modified_var := ev.get_from_id(modified_tok.value)):
         return errors.SCLNotFoundError(modified_tok.value)
@@ -140,7 +141,7 @@ def add_f(args: list[ps.Token]):
 
 
 def sub_f(args: list[ps.Token]):
-    modified_tok = ps.try_get([ps.TokenType.ARG], 0, args)
+    modified_tok = ps.try_get([ps.TokenType.IDT], 0, args)
 
     if not (modified_var := ev.get_from_id(modified_tok.value)):
         return errors.SCLNotFoundError(modified_tok.value)
@@ -153,7 +154,7 @@ def sub_f(args: list[ps.Token]):
     modified_var.set_value(modified_var.get_value() - modifier_vl)
 
 def mul_f(args: list[ps.Token]):
-    modified_tok = ps.try_get([ps.TokenType.ARG], 0, args)
+    modified_tok = ps.try_get([ps.TokenType.IDT], 0, args)
 
     if not (modified_var := ev.get_from_id(modified_tok.value)):
         return errors.SCLNotFoundError(modified_tok.value)
@@ -166,7 +167,7 @@ def mul_f(args: list[ps.Token]):
     modified_var.set_value(modified_var.get_value() * modifier_vl)
 
 def div_f(args: list[ps.Token]):
-    modified_tok = ps.try_get([ps.TokenType.ARG], 0, args)
+    modified_tok = ps.try_get([ps.TokenType.IDT], 0, args)
 
     if not (modified_var := ev.get_from_id(modified_tok.value)):
         return errors.SCLNotFoundError(modified_tok.value)
@@ -184,7 +185,7 @@ def div_f(args: list[ps.Token]):
         modified_var.set_value(modified_var.get_value() / modifier_vl)
 
 def pow_f(args: list[ps.Token]):
-    modified_tok = ps.try_get([ps.TokenType.ARG], 0, args)
+    modified_tok = ps.try_get([ps.TokenType.IDT], 0, args)
 
     if not (modified_var := ev.get_from_id(modified_tok.value)):
         return errors.SCLNotFoundError(modified_tok.value)
@@ -197,7 +198,7 @@ def pow_f(args: list[ps.Token]):
     modified_var.set_value(modified_var.get_value() ** modifier_vl)
 
 def help_f(args: list[ps.Token]):
-    cmd_tok = ps.try_get([ps.TokenType.ARG],0,args)
+    cmd_tok = ps.try_get([ps.TokenType.IDT], 0, args)
     match cmd_tok.value:
         case 'dp':
             print(manuals.DP)
@@ -241,18 +242,21 @@ def help_f(args: list[ps.Token]):
             print(manuals.LEN)
         case 'foreach':
             print(manuals.FOREACH)
+        case 'if':
+            print(manuals.IF)
         case 'list':
-            print("dp, dpl, loop, new, set, stt, end, clr, del, exec, add, sub, mul, div, pow, help, fun, ret, call, read, arr, get, mod, len, foreach")
+            print("dp, dpl, loop, new, set, stt, end, clr, del, exec, add, sub, mul, div, pow, help, fun, ret, call, read, arr, get, mod, len, foreach"
+                  ,"if")
         case _:
             return errors.SCLError("Unknown Command, either it does not exist or there is no manual for it")
 
 def fun_f(args: list[ps.Token]):
-    type_tok = ps.try_get([ps.TokenType.ARG],0,args)
+    type_tok = ps.try_get([ps.TokenType.IDT], 0, args)
 
     if not type_tok.has_specific_value(kws.return_datatypes):
         return errors.SCLError(f"Syntax Error: expected argument with specific value in {kws.return_datatypes}, got {type_tok.value}")
     ftype: al.DT_TYPES = al.DT_TYPES.str_to_type(type_tok.value)
-    name_tok = ps.try_get([ps.TokenType.ARG],1,args)
+    name_tok = ps.try_get([ps.TokenType.IDT], 1, args)
 
     name :str = name_tok.value
     params_tok = ps.try_get([ps.TokenType.TUPLE], 2, args)
@@ -265,7 +269,7 @@ def fun_f(args: list[ps.Token]):
     ev.alloc(al.Function(ftype,name,params,body))
 
 def call_f(args: list[ps.Token]):
-    name_tok = ps.try_get([ps.TokenType.ARG],0,args)
+    name_tok = ps.try_get([ps.TokenType.IDT], 0, args)
 
     fun = ev.get_from_id(name_tok.value)
     if not type(fun) is al.Function:
@@ -285,7 +289,7 @@ def ret_f(args: list[ps.Token]):
         ev._FUN_RET = vtok.evaluate()
 
 def read_f(args: list[ps.Token]):
-    vartok = ps.try_get([ps.TokenType.ARG],0,args)
+    vartok = ps.try_get([ps.TokenType.IDT], 0, args)
 
     if not (var := ul.var_ref(vartok.value)):
         return errors.SCLNotFoundError(vartok.value)
@@ -296,11 +300,11 @@ def read_f(args: list[ps.Token]):
         return errors.SCLWrongTypeError(var.type.__repr__())
 
 def array_f(args: list[ps.Token]):
-    oper_tok = ps.try_get([ps.TokenType.ARG],0,args)
+    oper_tok = ps.try_get([ps.TokenType.IDT], 0, args)
     if oper_tok.has_specific_value("new"):
-        type_tok = ps.try_get([ps.TokenType.ARG],1,args)
+        type_tok = ps.try_get([ps.TokenType.IDT], 1, args)
         if type_tok.has_specific_value(kws.arr_types):
-            name_tok = ps.try_get([ps.TokenType.ARG],2,args)
+            name_tok = ps.try_get([ps.TokenType.IDT], 2, args)
             if ul.is_valid_name(name_tok.value):
                 values_tok = ps.try_get(make_value(TokenType.ARR),3,args)
                 values = strict_getv(values_tok,al.DT_TYPES.str_to_type(type_tok.value),isarray=True)
@@ -324,20 +328,20 @@ def array_f(args: list[ps.Token]):
         return errors.SCLError(f"Syntax Error: expected argument with specific value in {kws.arr_opts}, got {oper_tok.value}")
 
 def get_f(args: list[ps.Token]):
-    iter_tok = ps.try_get([ps.TokenType.ARG],0,args)
+    iter_tok = ps.try_get([ps.TokenType.IDT], 0, args)
     iter = ev.get_from_id(iter_tok.value)
     if not issubclass(type(iter),al.Iterable):
         return errors.SCLNotIterableError(iter_tok.value)
     idx_tok = ps.try_get(make_value(ps.TokenType.INT),1,args)
     idx = strict_getv(idx_tok,al.DT_TYPES.INT)
-    dest_tok = ps.try_get([ps.TokenType.ARG],2,args)
+    dest_tok = ps.try_get([ps.TokenType.IDT], 2, args)
     dest = ev.get_from_id(dest_tok.value)
     if dest.type != iter.type:
         return errors.SCLWrongTypeError(iter.type.__repr__(),dest.type.__repr__())
     dest.set_value(iter.get_at_index(idx))
 
 def mod_f(args: list[ps.Token]):
-    iter_tok = ps.try_get([ps.TokenType.ARG], 0, args)
+    iter_tok = ps.try_get([ps.TokenType.IDT], 0, args)
     iter = ev.get_from_id(iter_tok.value)
     if not issubclass(type(iter), al.Iterable):
         return errors.SCLNotIterableError(iter_tok.value)
@@ -355,22 +359,22 @@ def mod_f(args: list[ps.Token]):
     iter.set_at_index(idx,new_v)
 
 def len_f(args: list[ps.Token]):
-    iter_tok = ps.try_get([ps.TokenType.ARG], 0, args)
+    iter_tok = ps.try_get([ps.TokenType.IDT], 0, args)
     iter = ev.get_from_id(iter_tok.value)
     if not issubclass(type(iter), al.Iterable):
         return errors.SCLNotIterableError(iter_tok.value)
-    dest_tok = ps.try_get([ps.TokenType.ARG], 1, args)
+    dest_tok = ps.try_get([ps.TokenType.IDT], 1, args)
     dest = ev.get_from_id(dest_tok.value)
     if dest.type != al.DT_TYPES.INT:
         return errors.SCLWrongTypeError(al.DT_TYPES.INT.__repr__(), dest.type.__repr__())
     dest.set_value(iter.length)
 
 def foreach_f(args: list[ps.Token]):
-    element_ident = ps.try_get([ps.TokenType.ARG],0,args).value
-    in_kw_tok = ps.try_get([ps.TokenType.ARG],1,args)
+    element_ident = ps.try_get([ps.TokenType.IDT], 0, args).value
+    in_kw_tok = ps.try_get([ps.TokenType.IDT], 1, args)
     if not in_kw_tok.has_specific_value(kws.foreach_opts):
         return errors.SCLError(f"Syntax Error: expected argument with specific value in {kws.foreach_opts}, got {in_kw_tok.value}")
-    iter_tok = ps.try_get([ps.TokenType.ARG],2,args)
+    iter_tok = ps.try_get([ps.TokenType.IDT], 2, args)
     iter = ev.get_from_id(iter_tok.value)
     if not issubclass(type(iter),al.Iterable):
         if not hasattr(iter.get_value(),'__iter__'):
@@ -390,3 +394,15 @@ def foreach_f(args: list[ps.Token]):
     ev.de_alloc(
         element
     )
+
+def if_f(args: list[ps.Token]):
+    bool_expr_tok = ps.try_get([TokenType.BLEXP],0,args)
+    true_section_tok = ps.try_get([TokenType.BODY],1,args)
+    false_section_tok = ps.try_get([TokenType.BODY],2,args)
+
+    if (eval_bool_expr(bool_expr_tok.value)):
+        for ins in true_section_tok.value:
+            exe.execute(ins)
+    else:
+        for ins in false_section_tok.value:
+            exe.execute(ins)

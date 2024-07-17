@@ -210,7 +210,6 @@ class SCLNotIterableError(SCLError):
         super().__init__(f"'{identifier}' is not an iterable object")
 
 class SCLInvalidFormalParameterError(SCLError):
-
     """
     tokentype_name: the name of the token type provided
     Raised when parsing formal parameters and getting a token other than a declaration
@@ -219,12 +218,20 @@ class SCLInvalidFormalParameterError(SCLError):
         super().__init__(f"Formal parameter should be a declaration (<type> <name>), got token of type '{tokentype_name}'")
 
 class SCLInvalidEffectiveParameterError(SCLError):
-
     """
     tokentype_name: the name of the token type provided
     Raised when parsing effective parameters and getting a token other than a literal, a variable reference or an array
     """
     def __init__(self,tokentype_name: str):
         super().__init__(f"Formal parameter should be a literal, a variable reference or an array, got token of type '{tokentype_name}'")
+
+class SCLInvalidBooleanExprError(SCLError):
+    """
+    bool_exp: the boolean expression
+    Raised when providing an invalid boolean expression
+    """
+
+    def __init__(self, bool_exp: str):
+        super().__init__(f"Invalid boolean expression provided, please check your expression: '{bool_exp}'")
 
 #TODO Syntax Error

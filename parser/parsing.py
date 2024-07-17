@@ -51,7 +51,7 @@ def check_effective_param(parameters: Token):
 tok: Should be of tokentype ARR
 Parses array token to real python values
 """
-def parse_array_values(tok: Token) -> list:
+def eval_array_values(tok: Token) -> list:
     res = []
     for vt in tok.value:
         res.append(vt.evaluate())
@@ -67,7 +67,7 @@ class Parser(Indexed):
             print(f"'{self.cur().value}' is not a valid type")
             quit()
         content = [self.cur()]
-        if self.has_next() and self.next().type == TokenType.ARG:
+        if self.has_next() and self.next().type == TokenType.IDT:
             self.advance()
             content.append(self.cur())
             return Token(TokenType.DECL,content)
@@ -93,9 +93,9 @@ class Parser(Indexed):
                         quit()
                     content.append(rs)
                 #parsing declaration
-                case TokenType.ARG:
+                case TokenType.IDT:
                     t = self.parse_dec()
-                    if t.type == TokenType.ARG:
+                    if t.type == TokenType.IDT:
                         print("Invalid Token For Tuple Content", self.cur())
                         quit()
                     content.append(t)
@@ -201,13 +201,13 @@ class Parser(Indexed):
             print("Right Curly Bracket Missing at", self.ix + 1)
             quit()
 
-    def parse_varref(self) -> Token:
-        if self.has_next() and self.next().type == TokenType.ARG:
+    def parse_varref(self) -> Token | None:
+        if self.has_next() and self.next().type == TokenType.IDT:
             self.advance()
             return Token(TokenType.VARRF, self.cur().value)
-        return Token(TokenType.DLR, self.cur().value)
+        return None
 
-    def parse_neg(self) -> Token:
+    def parse_neg(self) -> Token | None:
         if self.has_next():
             if self.next().type == TokenType.INT:
                 self.advance()
@@ -215,15 +215,22 @@ class Parser(Indexed):
             elif self.next().type == TokenType.FLT:
                 self.advance()
                 return Token(TokenType.FLT, '-' + self.cur().value)
-        return Token(TokenType.MINUS, self.cur().value)
+        return None
 
-    def parse_bool(self) -> Token:
+    def parse_bool(self) -> Token | None:
         if self.cur().value == "true":
             return Token(TokenType.BOOL, self.cur().value)
         elif self.cur().value == "false":
             return Token(TokenType.BOOL, self.cur().value)
         else:
-            return self.cur()
+            return None #self.cur()
+
+    def parse_bool_expr(self) -> Token | None:
+        if self.cur().value == 'b' and self.has_next() and self.next().type == TokenType.STR:
+            self.advance()
+            return Token(TokenType.BLEXP, self.cur().value)
+        else:
+            return None
 
     def parse(self) -> list[Token]:
         res = []
@@ -249,13 +256,13 @@ class Parser(Indexed):
                     print("Extra right curly brakcet at position", self.ix)
                     quit()
                 case TokenType.DLR:
-                    t = self.parse_varref()
+                    t = self.parse_varref() or Token(TokenType.DLR, self.cur().value)
                     res.append(t)
                 case TokenType.MINUS:
-                    t = self.parse_neg()
+                    t = self.parse_neg() or Token(TokenType.MINUS, self.cur().value)
                     res.append(t)
-                case TokenType.ARG:
-                    t = self.parse_bool()
+                case TokenType.IDT:
+                    t = self.parse_bool() or self.parse_bool_expr() or Token(TokenType.IDT,self.cur().value)
                     res.append(t)
                 case _:
                     res.append(self.cur())

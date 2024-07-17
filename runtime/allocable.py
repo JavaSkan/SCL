@@ -256,7 +256,7 @@ class Function(Allocable):
                 if current_type == DT_TYPES.ANY:
                     if tok.type == TokenType.ARR:
                         self.new_local(
-                            Array(DT_TYPES.ANY, current_idt, parser.parsing.parse_array_values(tok))
+                            Array(DT_TYPES.ANY, current_idt, parser.parsing.eval_array_values(tok))
                         )
                     else:
                         self.new_local(
