@@ -1,6 +1,7 @@
 from .tokens import Token, TokenType
 from .indexed import Indexed
 from string import whitespace
+from runtime.errors import quick_err
 
 import sys
 
@@ -8,20 +9,18 @@ class Lexer(Indexed):
     def __init__(self, string_input: str) -> None:
         super().__init__(string_input)
 
+    def display_err(self, msg):
+        out = self.inp + '\n'
+        for i in range(len(self.inp)):
+            out += '^' if i == self.ix else '-'
+        quick_err(tag="LEX-ERR",msg=msg)
+
     def parse_int(self) -> Token:
         buf = self.cur()
         while self.has_next() and ('0' <= self.next() <= '9'):
             self.advance()
             buf += self.cur()
         return Token(TokenType.INT, buf)
-
-    def display_err(self, msg):
-        print("[LEX-ERR]", msg)
-        out = self.inp + '\n'
-        for i in range(len(self.inp)):
-            out += '^' if i == self.ix else '-'
-        print(out)
-        sys.exit()
 
     def parse_number(self) -> Token:
         buf = self.parse_int().value

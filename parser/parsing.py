@@ -66,15 +66,13 @@ class Parser(Indexed):
 
     def parse_dec(self) -> Token:
         if not self.cur().has_specific_value(keywords.fml_prm_datatypes):
-            print(f"'{self.cur().value}' is not a valid type")
-            sys.exit()
+            errors.quick_err(tag="PARSER-ERR",msg=f"'{self.cur().value}' is not a valid type")
         content = [self.cur()]
         if self.has_next() and self.next().type == TokenType.IDT:
             self.advance()
             content.append(self.cur())
             return Token(TokenType.DECL,content)
-        print(f"Second part should be an argument token type")
-        sys.exit()
+        errors.quick_err(tag="PARSER-ERR",msg=f"Second part should be an argument token type")
 
 
     def parse_tuple(self) -> Token:
@@ -91,22 +89,19 @@ class Parser(Indexed):
                 case TokenType.MINUS:
                     rs = self.parse_neg()
                     if rs.type == TokenType.MINUS:
-                        print("Invalid Token For Tuple Content", self.cur())
-                        sys.exit()
+                        errors.quick_err(tag="PARSER-ERR",msg=f"Invalid Token For Tuple Content {self.cur()}")
                     content.append(rs)
                 #parsing declaration
                 case TokenType.IDT:
                     t = self.parse_dec()
                     if t.type == TokenType.IDT:
-                        print("Invalid Token For Tuple Content", self.cur())
-                        sys.exit()
+                        errors.quick_err(tag="PARSER-ERR",msg=f"Invalid Token For Tuple Content {self.cur()}")
                     content.append(t)
                 #variable referencing
                 case TokenType.DLR:
                     rs = self.parse_varref()
                     if rs.type == TokenType.DLR:
-                        print("Invalid Token For Tuple Content", self.cur())
-                        sys.exit()
+                        errors.quick_err(tag="PARSER-ERR" ,msg=f"Invalid Token For Tuple Content { self.cur()}")
                     content.append(rs)
                 #arrays
                 case TokenType.LBRK:
@@ -118,18 +113,15 @@ class Parser(Indexed):
                     closed = True
                     break
                 case _:
-                    print("Invalid Token For Tuple Content", self.cur())
-                    sys.exit()
+                    errors.quick_err(tag="PARSER-ERR",msg=f"Invalid Token For Tuple Content {self.cur()}")
             if self.has_next() and self.next().type != TokenType.CMA and self.next().type != TokenType.RPAR and not separated:
-                print(f"Missing a comma at position {self.ix + 1}")
-                sys.exit()
+                errors.quick_err(tag="PARSER-ERR",msg=f"Missing a comma at position {self.ix + 1}")
             else:
                 separated = False
         if closed:
             return Token(TokenType.TUPLE, content)
         else:
-            print("Right Parent Missing at", self.ix + 1)
-            sys.exit()
+            errors.quick_err(tag="PARSER-ERR",msg=f"Right Parent Missing at position {self.ix + 1}")
 
     def parse_arr(self) -> Token:
         content = []
@@ -145,15 +137,13 @@ class Parser(Indexed):
                 case TokenType.MINUS:
                     rs = self.parse_neg()
                     if rs.type == TokenType.MINUS:
-                        print("Invalid Token For Array Value", self.cur())
-                        sys.exit()
+                        errors.quick_err(tag="PARSER-ERR",msg=f"Invalid Token For Array Value {self.cur()}")
                     content.append(rs)
                 #variable referencing
                 case TokenType.DLR:
                     rs = self.parse_varref()
                     if rs.type == TokenType.DLR:
-                        print("Invalid Token For Array Value", self.cur())
-                        sys.exit()
+                        errors.quick_err(tag="PARSER-ERR", msg=f"Invalid Token For Array Value {self.cur()}")
                     content.append(rs)
                 #arrays
                 case TokenType.LBRK:
@@ -165,18 +155,15 @@ class Parser(Indexed):
                     closed = True
                     break
                 case _:
-                    print("Invalid Token", self.cur())
-                    sys.exit()
+                    errors.quick_err(tag="PARSER-ERR", msg=f"Invalid Token {self.cur()}")
             if self.has_next() and self.next().type != TokenType.CMA and self.next().type != TokenType.RBRK and not separated:
-                print(f"Missing a comma at position {self.ix + 1}")
-                sys.exit()
+                errors.quick_err(tag="PARSER-ERR", msg=f"Missing a comma at position {self.ix + 1}")
             else:
                 separated = False
         if closed:
             return Token(TokenType.ARR, content)
         else:
-            print("Right Bracket Missing at", self.ix + 1)
-            sys.exit()
+            errors.quick_err(tag="PARSER-ERR", msg=f"Right Bracket Missing at position {self.ix + 1}")
 
     def parse_body(self) -> Token:
         content = []
@@ -200,8 +187,7 @@ class Parser(Indexed):
             content.append(buf.copy())
             return Token(TokenType.BODY, content)
         else:
-            print("Right Curly Bracket Missing at", self.ix + 1)
-            sys.exit()
+            errors.quick_err(tag="PARSER-ERR", msg=f"Right Curly Bracket Missing at position {self.ix + 1}")
 
     def parse_varref(self) -> Token | None:
         if self.has_next() and self.next().type == TokenType.IDT:
@@ -249,14 +235,11 @@ class Parser(Indexed):
                     t = self.parse_body()
                     res.append(t)
                 case TokenType.RPAR:
-                    print("Extra right parenthesis at pos", self.ix)
-                    sys.exit()
+                    errors.quick_err(tag="PARSER-ERR", msg=f"Extra right parenthesis at pos {self.ix}")
                 case TokenType.RBRK:
-                    print("Extra right bracket at position", self.ix)
-                    sys.exit()
+                    errors.quick_err(tag="PARSER-ERR", msg=f"Extra right bracket at position {self.ix}")
                 case TokenType.RCBK:
-                    print("Extra right curly brakcet at position", self.ix)
-                    sys.exit()
+                    errors.quick_err(tag="PARSER-ERR", msg=f"Extra right curly brakcet at position {self.ix}")
                 case TokenType.DLR:
                     t = self.parse_varref() or Token(TokenType.DLR, self.cur().value)
                     res.append(t)

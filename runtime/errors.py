@@ -11,13 +11,16 @@ def dangerous(note=None):
         return wrapper
     return inner
 
+def quick_err(tag="GENERIC_ERR",msg=""):
+    SCLError(msg=msg).trigger(tag=tag)
+
 class SCLError:
     def __init__(self,msg:str):
         self.err_msg = msg
 
-    def trigger(self,line="",note=""):
+    def trigger(self,line="",note="",tag="SCL-ERR"):
         print("\033[0;31m",end="")
-        print(f"[SCL-ERR]: {self.err_msg}")
+        print(f"[{tag}]: {self.err_msg}")
         if line != "":
             print(f'line: {line}')
         if note != "":
