@@ -4,7 +4,6 @@ import parser.parsing
 from runtime import errors as err, env as ev
 from runtime.execution import execute
 from parser.parsing import TokenType, Token, check_formal_parameters
-#TODO implement boolean system
 
 class DT_TYPES(Enum):
 
