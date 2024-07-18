@@ -20,9 +20,7 @@ def eval_bool_expr(blexp: str):
 
     while (m := re.search(r"\$\w[\w\d_]*",blexp)) != None:
         var = get_from_id(blexp[m.start() + 1:m.end()])
-        if var.type != DT_TYPES.BOOL or type(var) is not Variable:
-            return SCLError(f"{var.ident} is not boolean variable")
-        blexp = blexp[:m.start()] + str(var.get_value()) + blexp[m.end():]
+        blexp = blexp[:m.start()] + var.get_insertion_value() + blexp[m.end():]
 
     try:
         result = eval(blexp)

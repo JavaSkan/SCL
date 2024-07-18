@@ -172,6 +172,13 @@ class Allocable:
     def get_value(self):
         return self.vl
 
+    # To inject in python code (eg: string value abc to "abc")
+    def get_insertion_value(self):
+        if self.type == DT_TYPES.STR:
+            return f'"{self.get_value()}"'
+        else:
+            return str(self.get_value())
+
     def set_value(self,new):
         self.vl = new
 
