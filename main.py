@@ -1,5 +1,4 @@
 from runtime import execution
-
 opening_message = """
 --------------------------------------
 Currently Using SCL Command Prompt

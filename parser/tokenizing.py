@@ -2,6 +2,8 @@ from .tokens import Token, TokenType
 from .indexed import Indexed
 from string import whitespace
 
+import sys
+
 class Lexer(Indexed):
     def __init__(self, string_input: str) -> None:
         super().__init__(string_input)
@@ -19,7 +21,7 @@ class Lexer(Indexed):
         for i in range(len(self.inp)):
             out += '^' if i == self.ix else '-'
         print(out)
-        quit()
+        sys.exit()
 
     def parse_number(self) -> Token:
         buf = self.parse_int().value

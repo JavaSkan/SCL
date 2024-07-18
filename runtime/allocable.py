@@ -3,7 +3,7 @@ from enum import Enum, auto
 import parser.parsing
 from runtime import errors as err, env as ev
 from runtime.execution import execute
-from parser.parsing import TokenType, Token, check_formal_parameters
+from parser.parsing import TokenType, Token
 
 class DT_TYPES(Enum):
 

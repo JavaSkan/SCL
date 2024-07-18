@@ -1,5 +1,5 @@
 CURRENT_LINE = ""
-
+import sys
 def dangerous(note=None):
     def inner(func):
         def wrapper(*args,**kwargs):
@@ -23,7 +23,7 @@ class SCLError:
         if note != "":
             print(f"NOTE: {note}")
         print("\033[0m",end="")
-        quit()
+        sys.exit(-1)
 
 class SCLUnknownCommandError(SCLError):
     """
