@@ -21,9 +21,10 @@ class TokenType(Enum):
     RCBK = auto()  # right curly bracket }
 
     # Special Characters
-    AT = auto()  # at           @
+    AT = auto()   # at           @
     DLR = auto()  # dollar sign  $
     DQT = auto()  # double quote "
+    SQT  = auto()  # single quote '
 
     # Punctuation Characters
     CLN = auto()  # colon     :

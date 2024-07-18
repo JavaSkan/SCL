@@ -43,7 +43,7 @@ class Lexer(Indexed):
             buf += self.cur()
         return Token(TokenType.IDT, buf)
 
-    def parse_str(self) -> Token:
+    def parse_dbq_str(self) -> Token:
         buf = ""
         fst_idx = self.ix  # used for error (if existing)
         self.advance()
@@ -57,6 +57,20 @@ class Lexer(Indexed):
             self.ix = fst_idx
             self.display_err("Extra double quote here")
 
+    def parse_sqt_str(self) -> Token:
+        buf = ""
+        fst_idx = self.ix  # used for error (if existing)
+        self.advance()
+        while self.has_next() and self.cur() != "'":
+            buf += self.cur()
+            self.advance()
+
+        if self.cur() == "'":
+            return Token(TokenType.STR, buf)
+        else:
+            self.ix = fst_idx
+            self.display_err("Extra single quote here")
+
     def tokenize(self) -> list[Token]:
         p = []
         while self.has_next():
@@ -69,7 +83,10 @@ class Lexer(Indexed):
                     t = self.parse_arg()
                     p.append(t)
                 case '"':
-                    t = self.parse_str()
+                    t = self.parse_dbq_str()
+                    p.append(t)
+                case "'":
+                    t = self.parse_sqt_str()
                     p.append(t)
                 case '(':
                     p.append(Token(TokenType.LPAR, self.cur()))
