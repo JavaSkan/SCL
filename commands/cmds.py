@@ -75,7 +75,8 @@ def state_f(args: list[ps.Token]):
         return nea
     print(f"ALLOCATIONS : {ev._ALCS}")
     print(f"ERROR_CODE: {ev._ERR_CODE}")
-    print(f"FUNCTION RETURN VALUE : {ev._FUN_RET}")
+    print(f"FUNCTION RETURN VALUE: {ev._FUN_RET}")
+    print(f"ALIASES: {ev._ALSS}")
 
 def end_f(args: list[ps.Token]):
     status_tok = ps.try_get(commands.make_value(ps.TokenType.INT), 0, args)
@@ -245,9 +246,10 @@ def help_f(args: list[ps.Token]):
             print(manuals.FOREACH)
         case 'if':
             print(manuals.IF)
+        case 'alias':
+            print(manuals.ALIAS)
         case 'list':
-            print("dp, dpl, loop, new, set, stt, end, clr, del, exec, add, sub, mul, div, pow, help, fun, ret, call, read, arr, get, mod, len, foreach"
-                  ,"if")
+            print("dp, dpl, loop, new, set, stt, end, clr, del, exec, add, sub, mul, div, pow, help, fun, ret, call, read, arr, get, mod, len, foreach, if, alias")
         case _:
             return errors.SCLError("Unknown Command, either it does not exist or there is no manual for it")
 
@@ -407,3 +409,15 @@ def if_f(args: list[ps.Token]):
     else:
         for ins in false_section_tok.value:
             exe.execute(ins)
+
+def alias_f(args: list[ps.Token]):
+    opt_tok = ps.try_get([TokenType.IDT],0,args)
+    if not opt_tok.has_specific_value(kws.alias_opts):
+        return errors.SCLError(f"Syntax Error: expected argument with specific value in {kws.alias_opts}, got {opt_tok.value}")
+    alias_name_tok = ps.try_get([TokenType.IDT],1,args)
+
+    if opt_tok.value == "create":
+        alias_content_tok = ps.try_get([TokenType.STR], 2, args)
+        ev._ALSS[alias_name_tok.value] = alias_content_tok.value
+    else:
+        del ev._ALSS[alias_name_tok.value]

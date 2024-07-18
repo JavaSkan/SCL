@@ -1,7 +1,8 @@
 from runtime import errors as err
 
-_ALCS = dict()        #Allocations
-_FUN_RET = None       #Function return
+_ALCS     = dict()    #Allocations
+_ALSS     = dict()    #Aliases
+_FUN_RET  = None      #Function return
 _ERR_CODE = 0         #Error Code
 
 def exists(identifier: str) -> bool:

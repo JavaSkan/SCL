@@ -161,3 +161,8 @@ use '&' for AND
     variable referencing (boolean variables)
     and true or false
 '''
+
+ALIAS   = '''
+>>> Creates or removes aliases for a line of code/command
+Syntax: alias create|remove <name> [code]
+'''

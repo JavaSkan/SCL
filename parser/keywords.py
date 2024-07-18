@@ -46,6 +46,12 @@ foreach_opts = {
     'in'
 }
 
+#alias command options
+alias_opts = {
+    'create',
+    'remove'
+}
+
 class BOOLEAN_KWS:
     AND  = r'&'
     OR   = r'\|'

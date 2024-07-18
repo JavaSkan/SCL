@@ -1,5 +1,6 @@
 from parser.tokens import Token
 from . import errors
+from .env import _ALSS
 from parser.tokenizing import Lexer
 from parser.parsing import Parser
 
@@ -13,7 +14,9 @@ def execute(inst: str | list[Token]) -> None:
     from commands.funlink import cmds
 
     if type(inst) is str:
-        SCL_LEXER.reset(inst)
+        #check if the inst is an alias
+        al_or_inst = _ALSS.get(inst) or inst
+        SCL_LEXER.reset(al_or_inst)
         SCL_PARSER.reset(SCL_LEXER.tokenize())
     else:
         SCL_PARSER.reset(new=inst)

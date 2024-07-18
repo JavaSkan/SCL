@@ -26,5 +26,6 @@ cmds = {"dp":	  cmds.display_f,
 		"len":    cmds.len_f,
 		"foreach":cmds.foreach_f,
 		"if":     cmds.if_f,
+		"alias":  cmds.alias_f,
 		"":       lambda x: {}
 		}
