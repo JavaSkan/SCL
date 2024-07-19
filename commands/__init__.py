@@ -1,5 +1,5 @@
 from parser import parsing as ps
-from parser.tokens import TokenType
+from parser.tokens import Token, TokenType
 from runtime import allocable as al
 from runtime import ulang as ul
 from runtime import errors
