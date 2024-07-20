@@ -1,5 +1,4 @@
 import os
-import sys
 
 import commands
 import parser.tokens
@@ -94,7 +93,7 @@ def end_f(args: list[Token]):
     ev._ERR_CODE = status
     if show:
         print("ended with success" if status == 0 else "ended with failure")
-    sys.exit()
+    os._exit(ev._ERR_CODE)
 
 def clear_f(args: list[Token]):
     nea = ps.no_extra_args(args)

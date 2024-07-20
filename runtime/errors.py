@@ -1,5 +1,7 @@
-CURRENT_LINE = ""
 import sys
+
+CURRENT_LINE = ""
+
 def dangerous(note=None):
     def inner(func):
         def wrapper(*args,**kwargs):
@@ -19,14 +21,17 @@ class SCLError:
         self.err_msg = msg
 
     def trigger(self,line="",note="",tag="SCL-ERR"):
-        print("\033[0;31m",end="")
+        self.print(line=line,note=note,tag=tag)
+        sys.exit(-1)
+
+    def print(self, line="", note="", tag="SCL-ERR"):
+        print("\033[0;31m", end="")
         print(f"[{tag}]: {self.err_msg}")
         if line != "":
             print(f'line: {line}')
         if note != "":
             print(f"NOTE: {note}")
-        print("\033[0m",end="")
-        sys.exit(-1)
+        print("\033[0m", end="")
 
 class SCLUnknownCommandError(SCLError):
     """

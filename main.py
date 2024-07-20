@@ -1,4 +1,5 @@
 from runtime import execution
+import threading as th
 opening_message = """
 --------------------------------------
 Currently Using SCL Command Prompt
@@ -12,7 +13,9 @@ def main():
     script = ""
     while True:
         script = input("> ")
-        execution.execute(script)
+        exth = th.Thread(target=execution.execute,args=(script,))
+        exth.start()
+        exth.join()
 
 if __name__ == '__main__':
     main()
