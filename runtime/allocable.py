@@ -278,6 +278,7 @@ class Function(Allocable):
 
     def del_locals(self):
         for local in self.locals:
+            self.locals.pop(self.locals.index(local))
             ev.de_alloc(local)
 
     def execute_fun(self,arguments: list[Token]):
@@ -291,7 +292,7 @@ class Function(Allocable):
                 return err.SCLNoReturnValueError(self.ident)
             elif self.type == DT_TYPES.ANY:
                 self.set_value(ev._FUN_RET)
-            elif self.type.is_compatible_with_type(ev._FUN_RET):
+            elif self.type.is_compatible_with_type(str(ev._FUN_RET)):
                 self.set_value(self.type.convert_str_to_value(ev._FUN_RET))
             else:
                 return err.SCLWrongReturnTypeError(self.ident,self.type.__repr__(),DT_TYPES.guess_type(ev._FUN_RET).__repr__())
