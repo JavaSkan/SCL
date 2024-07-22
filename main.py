@@ -13,7 +13,7 @@ def main():
     script = ""
     while True:
         script = input("> ")
-        exth = th.Thread(target=execution.execute,args=(script,))
+        exth = th.Thread(target=execution.execute,args=[script])
         exth.start()
         exth.join()
 
