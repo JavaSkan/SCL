@@ -1,6 +1,6 @@
 from enum import Enum, auto
 
-
+#todo make tokens have positions
 class TokenType(Enum):
     # General Token Types
     UNK = -1
@@ -21,27 +21,27 @@ class TokenType(Enum):
     RCBK = auto()  # right curly bracket }
 
     # Special Characters
-    AT = auto()   # at           @
-    DLR = auto()  # dollar sign  $
-    DQT = auto()  # double quote "
+    AT   = auto()   # at            @
+    DLR  = auto()  # dollar sign   $
+    DQT  = auto()  # double quote  "
     SQT  = auto()  # single quote '
 
     # Punctuation Characters
-    CLN = auto()  # colon     :
+    CLN = auto()  # colon      :
     SMCL = auto()  # semicolon ;
-    CMA = auto()  # comma     ,
-    DOT = auto()  # colon     .
+    CMA = auto()  # comma      ,
+    DOT = auto()  # colon      .
 
     # Arithmetic Characters
-    PLUS = auto()  # plus           +
+    PLUS = auto()  # plus            +
     MINUS = auto()  # minux          -
-    STAR = auto()  # star/mult      *
+    STAR = auto()  # star/mult       *
     SLASH = auto()  # slash/div      /
     PERCT = auto()  # percent/modulo %
 
     # Scope Token Types
-    BODY = auto()  # Body scope         {...}
-    TUPLE = auto()  # Tuple              (...)
+    BODY = auto()  # Body scope        {...}
+    TUPLE = auto()  # Tuple            (...)
     ARR = auto()  # Array literal      [...]
 
     #Post parsing

@@ -28,7 +28,7 @@ class SCLError:
         print("\033[0;31m", end="")
         print(f"[{tag}]: {self.err_msg}")
         if line != "":
-            print(f'line: {line}')
+            print(f"line: '{line}'")
         if note != "":
             print(f"NOTE: {note}")
         print("\033[0m", end="")

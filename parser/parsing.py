@@ -4,8 +4,6 @@ from .tokens import TokenType, Token
 from .indexed import Indexed
 from . import keywords
 
-import sys
-
 @dangerous(note="[PARSING] TOKEN MISMATCH")
 def try_get(tokentypes:list[TokenType], position:int, args:list[Token]) -> (Token | None, errors.SCLError):
     #import errors  # avoid circular import
@@ -61,7 +59,8 @@ def eval_array_values(tok: Token) -> list:
 
 class Parser(Indexed):
 
-    def __init__(self, tokens: list[Token]) -> None:
+    #TODO parse lines separated with ;
+    def __init__(self, tokens: list[Token] = list) -> None:
         super().__init__(tokens)
 
     def parse_dec(self) -> Token:
@@ -249,6 +248,15 @@ class Parser(Indexed):
                 case TokenType.IDT:
                     t = self.parse_bool() or self.parse_bool_expr() or Token(TokenType.IDT,self.cur().value)
                     res.append(t)
+                case TokenType.SMCL:
+                    break
                 case _:
                     res.append(self.cur())
         return res
+
+    def parse_lines(self) -> list[list[Token]]:
+        lines = []
+        while self.has_next():
+            lines.append(self.parse())
+            #self.advance()
+        return lines

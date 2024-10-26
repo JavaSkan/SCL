@@ -11,9 +11,11 @@ All rights reserved©
 def main():
     print(opening_message)
     script = ""
+    mainExecutor = execution.Executor()
+    mainExecutor.init()
     while True:
         script = input("> ")
-        exth = th.Thread(target=execution.execute,args=[script])
+        exth = th.Thread(target=mainExecutor.execute,args=[script])
         exth.start()
         exth.join()
 

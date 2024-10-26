@@ -160,7 +160,7 @@ class Iterable:
 class Allocable:
 
     def __init__(self, type: DT_TYPES, ident:str, value):
-        self.maddr = None
+        self.maddr = id(self)
         self.type = type
         self.ident = ident
         self.vl = value

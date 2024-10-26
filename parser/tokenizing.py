@@ -3,10 +3,8 @@ from .indexed import Indexed
 from string import whitespace
 from runtime.errors import quick_err
 
-import sys
-
 class Lexer(Indexed):
-    def __init__(self, string_input: str) -> None:
+    def __init__(self, string_input: str = "") -> None:
         super().__init__(string_input)
 
     def display_err(self, msg):

@@ -1,5 +1,3 @@
-#TODO use multiline raw strings for manuals
-
 DP      = '''
 >>> Displays something on the screen
 Syntax: dp <string of characters>
@@ -65,12 +63,11 @@ Syntax: del <name>
 
 EXEC    = '''
 >>> Executes SCl script
-Syntax: exec <file_name_with_extension> <multi_line?>
+Syntax: exec <file_name_with_extension>
 NOTE:
  -compatible with variable referencing (at <file_name_with_extension> argument)
  -<file_name_with_extension> should be a string literal
- -<multi_line> is a boolean literal, if it is false then commands are considered separated by line breaks 'n', if true
- then they are considered separated by semicolons '!'
+ -commands must end with a semicolon, content will be ignored after the full command
 '''
 
 OPERTS  = '''

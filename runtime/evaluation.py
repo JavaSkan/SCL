@@ -1,7 +1,6 @@
 import re
 from parser.keywords import BOOLEAN_KWS
-from runtime.allocable import DT_TYPES, Variable
-from runtime.errors import SCLError, SCLInvalidBooleanExprError, dangerous
+from runtime.errors import SCLInvalidBooleanExprError, dangerous
 from runtime.env import get_from_id
 
 """

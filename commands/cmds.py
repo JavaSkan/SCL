@@ -76,10 +76,10 @@ def state_f(args: list[Token]):
     nea = ps.no_extra_args(args)
     if nea:
         return nea
-    print(f"ALLOCATIONS : {ev._ALCS}")
-    print(f"ERROR_CODE: {ev._ERR_CODE}")
-    print(f"FUNCTION RETURN VALUE: {ev._FUN_RET}")
-    print(f"ALIASES: {ev._ALSS}")
+    print(f"ALLOCATIONS : {ev.CURENV.allocations}")
+    print(f"ALIASES: {ev.CURENV.aliases}")
+    print(f"ERROR_CODE: {ev.CURENV.exit_code}")
+    print(f"FUNCTION RETURN VALUE: {ev.CURENV.fun_ret}")
 
 def end_f(args: list[Token]):
     status_tok = ps.try_get(commands.make_value(TokenType.INT), 0, args)
@@ -93,13 +93,13 @@ def end_f(args: list[Token]):
     ev._ERR_CODE = status
     if show:
         print("ended with success" if status == 0 else "ended with failure")
-    os._exit(ev._ERR_CODE)
+    os._exit(ev.CURENV.exit_code)
 
 def clear_f(args: list[Token]):
     nea = ps.no_extra_args(args)
     if nea:
         return nea
-    ev._ALCS.clear()
+    ev.CURENV.allocations.clear()
 
 def delete_f(args: list[Token]):
     ident_tok = ps.try_get([TokenType.IDT], 0, args)
@@ -118,7 +118,6 @@ def set_f(args: list[Token]):
 
 def execute_f(args: list[Token]):
     path_tok = ps.try_get(commands.make_value(TokenType.STR), 0, args)
-    parse_multiline = ps.try_get([TokenType.BOOL],1,args).evaluate()
     path: str = path_tok.value
     if not os.path.exists(path):
         return errors.SCLNotExistingPathError(path)
@@ -127,9 +126,13 @@ def execute_f(args: list[Token]):
     if not path.endswith('.scl'):
         return errors.SCLWrongExtensionError(path)
     with open(path,'r',encoding="utf-8-sig") as script:
-        lines = script.read().split('\n' if not parse_multiline else '!')
-        for line in lines:
-            exe.execute(line)
+        file_executor = Executor(environment=ev.Environment())
+        file_executor.init()
+        file_executor.load_script(script.read())
+        parsed_content = file_executor.parser.parse_lines()
+        for set_of_tokens in parsed_content:
+            file_executor.execute_parsed(set_of_tokens)
+        file_executor.reset_env()
 
 def add_f(args: list[Token]):
     modified_tok = ps.try_get([TokenType.IDT], 0, args)
