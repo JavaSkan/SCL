@@ -1,6 +1,7 @@
 from parser.tokens import Token
 from . import errors
-from .env import _ALSS, CURENV
+from .env import _ALSS
+from . import env
 from parser.tokenizing import Lexer
 from parser.parsing import Parser
 
@@ -31,11 +32,18 @@ def execute(inst: str | list[Token]) -> None:
 
 class Executor:
 
-    def __init__(self,environment=CURENV):
+    def __init__(self,environment=env.CURENV):
         self.line   = ''
         self.lexer  = Lexer()
         self.parser = Parser()
         self.evm    = environment
+
+    def __enter__(self):
+        self.init()
+        return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        self.reset_env()
 
     def load_script(self, script: str):
         self.line = script
@@ -46,7 +54,7 @@ class Executor:
         self.evm.use_this_env()
 
     def reset_env(self):
-        CURENV = self.evm.prev_env
+        env.CURENV = self.evm.prev_env
 
     def execute(self, script: str):
         self.load_script(self.evm.aliases.get(script) or script)

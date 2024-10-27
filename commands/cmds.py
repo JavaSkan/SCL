@@ -126,13 +126,11 @@ def execute_f(args: list[Token]):
     if not path.endswith('.scl'):
         return errors.SCLWrongExtensionError(path)
     with open(path,'r',encoding="utf-8-sig") as script:
-        file_executor = Executor(environment=ev.Environment())
-        file_executor.init()
-        file_executor.load_script(script.read())
-        parsed_content = file_executor.parser.parse_lines()
-        for set_of_tokens in parsed_content:
-            file_executor.execute_parsed(set_of_tokens)
-        file_executor.reset_env()
+        with Executor(environment=ev.Environment()) as file_executor:
+            file_executor.load_script(script.read())
+            parsed_content = file_executor.parser.parse_lines()
+            for set_of_tokens in parsed_content:
+                file_executor.execute_parsed(set_of_tokens)
 
 def add_f(args: list[Token]):
     modified_tok = ps.try_get([TokenType.IDT], 0, args)
