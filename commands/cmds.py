@@ -93,7 +93,7 @@ def end_f(args: list[Token]):
 
     ev.CURENV.exit_code = status
     if show:
-        print("ended with success" if status == 0 else "ended with failure")
+        print("ended with success" if status == 0 else "ended with failure" if status == 1 else f"ended with exit code {status}")
     os._exit(ev.CURENV.exit_code)
 
 def clear_f(args: list[Token]):

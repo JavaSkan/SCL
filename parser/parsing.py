@@ -59,7 +59,6 @@ def eval_array_values(tok: Token) -> list:
 
 class Parser(Indexed):
 
-    #TODO parse lines separated with ;
     def __init__(self, tokens: list[Token] = list) -> None:
         super().__init__(tokens)
 
