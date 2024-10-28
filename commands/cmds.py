@@ -90,7 +90,7 @@ def end_f(args: list[Token]):
     if (show := safe_getv(show_tok, al.DT_TYPES.BOOL)) == None:
         return errors.SCLWrongTypeError("bool",al.DT_TYPES.guess_type(show_tok.value).__repr__())
 
-    ev._ERR_CODE = status
+    ev.CURENV.exit_code = status
     if show:
         print("ended with success" if status == 0 else "ended with failure")
     os._exit(ev.CURENV.exit_code)
@@ -291,9 +291,9 @@ def ret_f(args: list[Token]):
 
     if vtok.type == TokenType.VARRF:
         if (val := ul.var_ref(vtok.value).get_value()):
-            ev._FUN_RET = val
+            ev.CURENV.fun_ret = val
     else:
-        ev._FUN_RET = vtok.evaluate()
+        ev.CURENV.fun_ret = vtok.evaluate()
 
 def read_f(args: list[Token]):
     vartok = ps.try_get([TokenType.IDT], 0, args)
@@ -422,6 +422,6 @@ def alias_f(args: list[Token]):
 
     if opt_tok.value == "create":
         alias_content_tok = ps.try_get([TokenType.STR], 2, args)
-        ev._ALSS[alias_name_tok.value] = alias_content_tok.value
+        ev.CURENV.aliases[alias_name_tok.value] = alias_content_tok.value
     else:
-        del ev._ALSS[alias_name_tok.value]
+        del ev.CURENV.aliases[alias_name_tok.value]

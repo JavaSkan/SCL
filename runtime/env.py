@@ -1,10 +1,5 @@
 from runtime import errors as err
 
-_ALCS     = dict()    #Allocations
-_ALSS     = dict()    #Aliases
-_FUN_RET  = None      #Function return
-_ERR_CODE = 0        #Error Code
-
 class Environment:
 
     def __init__(self):
