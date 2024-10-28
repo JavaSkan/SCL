@@ -223,7 +223,7 @@ class Array(Allocable,Iterable):
 class Function(Allocable):
 
     def __init__(self, type:DT_TYPES, ident:str, params, body:list[str]):
-        self.pm = [] if params == None else params
+        self.pm = params or []
         self.bd = body
         self.locals = []
         self.ret = None
@@ -240,7 +240,7 @@ class Function(Allocable):
     """
     To set params when the function is called
     """
-    @err.dangerous()
+    #@err.dangerous()
     def set_params(self,efpars):
         if len(efpars) != len(self.pm):
             return err.SCLFunArgsMismatchError(len(self.locals),len(efpars))
