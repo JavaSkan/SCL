@@ -55,11 +55,12 @@ class Executor:
     def reset_env(self):
         env.CURENV = self.evm.prev_env
 
-    def execute(self, script: str):
-        self.load_script(self.evm.aliases.get(script) or script)
-        errors.CURRENT_LINE = self.line
-
-        #TODO find a way to switch to the previous environment after exiting the current one
+    def execute(self, script: str | list):
+        if type(script) is str:
+            self.load_script(self.evm.aliases.get(script) or script)
+            errors.CURRENT_LINE = self.line
+        else:
+            self.parser.reset(new=script)
         parsed = self.parser.parse()
         self.execute_parsed(parsed)
 

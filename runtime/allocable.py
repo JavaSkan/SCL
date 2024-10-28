@@ -2,7 +2,8 @@ from enum import Enum, auto
 
 import parser.parsing
 from runtime import errors as err, env as ev
-from runtime.execution import execute
+from runtime.env import Environment
+from runtime.execution import Executor
 from parser.parsing import TokenType, Token
 
 class DT_TYPES(Enum):
@@ -282,21 +283,22 @@ class Function(Allocable):
             ev.de_alloc(local)
 
     def execute_fun(self,arguments: list[Token]):
-        if self.pm != None:
-            if (setpmerr := self.set_params(arguments)):
-                return setpmerr
-        for ins in self.bd:
-            execute(ins)
-        if ev._FUN_RET:
-            if self.type == DT_TYPES.NIL:
-                return err.SCLNoReturnValueError(self.ident)
-            elif self.type == DT_TYPES.ANY:
-                self.set_value(ev._FUN_RET)
-            elif self.type.is_compatible_with_type(str(ev._FUN_RET)):
-                self.set_value(self.type.convert_str_to_value(ev._FUN_RET))
+        with Executor(environment=Environment()) as fexe:
+            if self.pm != None:
+                if (setpmerr := self.set_params(arguments)):
+                    return setpmerr
+            for ins in self.bd:
+                fexe.execute(ins)
+            if fexe.evm.fun_ret:
+                if self.type == DT_TYPES.NIL:
+                    return err.SCLNoReturnValueError(self.ident)
+                elif self.type == DT_TYPES.ANY:
+                    self.set_value(fexe.evm.fun_ret)
+                elif self.type.is_compatible_with_type(str(fexe.evm.fun_ret)):
+                    self.set_value(self.type.convert_str_to_value(fexe.evm.fun_ret))
+                else:
+                    return err.SCLWrongReturnTypeError(self.ident,self.type.__repr__(),DT_TYPES.guess_type(fexe.evm.fun_ret).__repr__())
             else:
-                return err.SCLWrongReturnTypeError(self.ident,self.type.__repr__(),DT_TYPES.guess_type(ev._FUN_RET).__repr__())
-        else:
-            self.set_value(self.type.default_value())
-        self.del_locals()
-        ev._FUN_RET = None
+                self.set_value(self.type.default_value())
+            self.del_locals()
+            fexe.evm.fun_ret = None
