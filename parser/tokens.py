@@ -60,7 +60,7 @@ class Token:
         self.value = value
 
     def __repr__(self) -> str:
-        return f"{self.type.__repr__()}:{self.value}"
+        return f"{self.type.name}:{self.value}"
 
     def has_specific_value(self,values) -> bool:
         return self.value in values

@@ -10,7 +10,7 @@ def try_get(tokentypes:list[TokenType], position:int, args:list[Token]) -> (Toke
     if position >= len(args) :
         return errors.SCLError(f"SyntaxError: missing token of type '{' | '.join([t.__repr__() for t in tokentypes])}' at position {position + 2}")
     if (wanted_token := args[position]).type not in tokentypes:
-        return errors.SCLError(f"SyntaxError: expected token of type '{' | '.join([t.__repr__() for t in tokentypes])}' at position {position + 2}, got '{args[position].type.__repr__()}'")
+        return errors.SCLError(f"SyntaxError: expected token of type '{' | '.join([t.__repr__() for t in tokentypes])}' at position {position + 2}, got '{args[position].type.name}'")
     else:
         return wanted_token
 
@@ -30,7 +30,7 @@ def check_formal_parameters(parameters: Token):
     res = []
     for parameter in parameters.value:
         if not parameter.type == TokenType.DECL:
-            return errors.SCLInvalidFormalParameterError(parameter.type.__repr__())
+            return errors.SCLInvalidFormalParameterError(parameter.type.name)
         res.append([parameter.value[0].value,parameter.value[1].value])
     return res
 
@@ -43,7 +43,7 @@ def check_effective_param(parameters: Token):
     res = []
     for parameter in parameters.value:
         if not parameter.type in {TokenType.INT, TokenType.FLT, TokenType.BOOL, TokenType.STR, TokenType.ARR,TokenType.VARRF}:
-            return errors.SCLInvalidEffectiveParameterError(parameter.type.__repr__())
+            return errors.SCLInvalidEffectiveParameterError(parameter.type.name)
         res.append(parameter)
     return res
 

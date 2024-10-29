@@ -65,7 +65,7 @@ def new_f(args: list[Token]):
 
     value_tok = ps.try_get(commands.make_value(*parser.tokens.all_literals()), 3, args)
     if (value := safe_getv(value_tok, al.DT_TYPES.str_to_type(vartype))) == None:
-        return errors.SCLWrongTypeError(vartype,al.DT_TYPES.guess_type(value_tok.value).__repr__())
+        return errors.SCLWrongTypeError(vartype,al.DT_TYPES.guess_type(value_tok.value).name)
 
     #Creation of the variable
     ev.alloc(al.Variable(
@@ -92,7 +92,7 @@ def end_f(args: list[Token]):
 
     show_tok = ps.try_get(commands.make_value(TokenType.BOOL), 1, args)
     if (show := safe_getv(show_tok, al.DT_TYPES.BOOL)) == None:
-        return errors.SCLWrongTypeError("bool",al.DT_TYPES.guess_type(show_tok.value).__repr__())
+        return errors.SCLWrongTypeError("bool",al.DT_TYPES.guess_type(show_tok.value).name)
 
     ev.CURENV.exit_code = status
     if show:
@@ -117,7 +117,7 @@ def set_f(args: list[Token]):
 
     new_v_tok = ps.try_get(commands.make_value(*parser.tokens.all_literals()), 1, args)
     if (new_v := safe_getv(new_v_tok, var.type)) == None:
-        return errors.SCLError(f"Expected argument of type '{var.type.__repr__()}' at position 3")
+        return errors.SCLError(f"Expected argument of type '{var.type.name}' at position 3")
     var.set_value(new_v)
 
 def execute_f(args: list[Token]):
@@ -131,7 +131,7 @@ def execute_f(args: list[Token]):
         return errors.SCLWrongExtensionError(path)
     cross_env_tok = ps.try_get(commands.make_value(TokenType.BOOL), 1, args)
     if (cross_env := safe_getv(cross_env_tok,DT_TYPES.BOOL)) == None:
-        return SCLWrongTypeError(DT_TYPES.BOOL.__repr__())
+        return SCLWrongTypeError(DT_TYPES.BOOL.name)
     with open(path,'r',encoding="utf-8-sig") as script:
         used_env = ev.CURENV if cross_env else Environment()
         with Executor(environment=used_env) as file_executor:
@@ -146,11 +146,11 @@ def add_f(args: list[Token]):
     if not (modified_var := ev.get_from_id(modified_tok.value)):
         return errors.SCLNotFoundError(modified_tok.value)
     if not modified_var.type in oper.datatypes_support_add:
-        return errors.SCLWrongOperationError("addition",modified_var.type.__repr__())
+        return errors.SCLWrongOperationError("addition",modified_var.type.name)
     modifier_tok = ps.try_get(commands.make_value(*oper.tokentypes_support_add), 1, args)
 
     if (modifier_vl := safe_getv(modifier_tok, modified_var.type)) == None:
-        return errors.SCLError(f"Expected argument of type '{modified_var.type}' at position 3")
+        return errors.SCLError(f"Expected argument of type '{modified_var.type.name}' at position 3")
     modified_var.set_value(modified_var.get_value() + modifier_vl)
 
 
@@ -160,11 +160,11 @@ def sub_f(args: list[Token]):
     if not (modified_var := ev.get_from_id(modified_tok.value)):
         return errors.SCLNotFoundError(modified_tok.value)
     if not modified_var.type in oper.datatypes_support_sub:
-        return errors.SCLWrongOperationError("subtraction", modified_var.type.__repr__())
+        return errors.SCLWrongOperationError("subtraction", modified_var.type.name)
     modifier_tok = ps.try_get(commands.make_value(*oper.tokentypes_support_sub), 1, args)
 
     if (modifier_vl := safe_getv(modifier_tok, modified_var.type)) == None:
-        return errors.SCLError(f"Expected argument of type '{modified_var.type}' at position 3")
+        return errors.SCLError(f"Expected argument of type '{modified_var.type.name}' at position 3")
     modified_var.set_value(modified_var.get_value() - modifier_vl)
 
 def mul_f(args: list[Token]):
@@ -173,11 +173,11 @@ def mul_f(args: list[Token]):
     if not (modified_var := ev.get_from_id(modified_tok.value)):
         return errors.SCLNotFoundError(modified_tok.value)
     if not modified_var.type in oper.datatypes_support_mul:
-        return errors.SCLWrongOperationError("multiplication", modified_var.type.__repr__())
+        return errors.SCLWrongOperationError("multiplication", modified_var.type.name)
     modifier_tok = ps.try_get(commands.make_value(*oper.tokentypes_support_mul), 1, args)
 
     if (modifier_vl := safe_getv(modifier_tok, modified_var.type)) == None:
-        return errors.SCLError(f"Expected argument of type '{modified_var.type}' at position 3")
+        return errors.SCLError(f"Expected argument of type '{modified_var.type.name}' at position 3")
     modified_var.set_value(modified_var.get_value() * modifier_vl)
 
 def div_f(args: list[Token]):
@@ -186,11 +186,11 @@ def div_f(args: list[Token]):
     if not (modified_var := ev.get_from_id(modified_tok.value)):
         return errors.SCLNotFoundError(modified_tok.value)
     if not modified_var.type in oper.datatypes_support_div:
-        return errors.SCLWrongOperationError("division", modified_var.type.__repr__())
+        return errors.SCLWrongOperationError("division", modified_var.type.name)
     modifier_tok = ps.try_get(commands.make_value(*oper.tokentypes_support_div), 1, args)
 
     if (modifier_vl := safe_getv(modifier_tok, modified_var.type)) == None:
-        return errors.SCLError(f"Expected argument of type '{modified_var.type}' at position 3")
+        return errors.SCLError(f"Expected argument of type '{modified_var.type.name}' at position 3")
     if modifier_vl == 0:
         return errors.SCLDivisionByZeroError(modified_var.ident)
     if modified_var.type == al.DT_TYPES.INT:
@@ -204,11 +204,11 @@ def pow_f(args: list[Token]):
     if not (modified_var := ev.get_from_id(modified_tok.value)):
         return errors.SCLNotFoundError(modified_tok.value)
     if not modified_var.type in oper.datatypes_support_pow:
-        return errors.SCLWrongOperationError("power", modified_var.type.__repr__())
+        return errors.SCLWrongOperationError("power", modified_var.type.name)
     modifier_tok = ps.try_get(commands.make_value(*oper.tokentypes_support_pow), 1, args)
 
     if (modifier_vl := safe_getv(modifier_tok, modified_var.type)) == None:
-        return errors.SCLError(f"Expected argument of type '{modified_var.type}' at position 3")
+        return errors.SCLError(f"Expected argument of type '{modified_var.type.name}' at position 3")
     modified_var.set_value(modified_var.get_value() ** modifier_vl)
 
 def help_f(args: list[Token]):
@@ -312,7 +312,7 @@ def read_f(args: list[Token]):
     if var.type.is_compatible_with_type(usr_input):
         var.set_value(var.type.convert_str_to_value(usr_input))
     else:
-        return errors.SCLWrongTypeError(var.type.__repr__())
+        return errors.SCLWrongTypeError(var.type.name)
 
 def array_f(args: list[Token]):
     oper_tok = ps.try_get([TokenType.IDT], 0, args)
@@ -331,7 +331,7 @@ def array_f(args: list[Token]):
                     )
                 if type_tok.value != 'any':
                     if not new_arr.are_values_compatible_with_type(values):
-                        return errors.SCLError(f"Not all values are compatible with the array type: {new_arr.type.__repr__()}")
+                        return errors.SCLError(f"Not all values are compatible with the array type: {new_arr.type.name}")
                 ev.alloc(
                     new_arr
                 )
@@ -352,7 +352,7 @@ def get_f(args: list[Token]):
     dest_tok = ps.try_get([TokenType.IDT], 2, args)
     dest = ev.get_from_id(dest_tok.value)
     if dest.type != iter.type:
-        return errors.SCLWrongTypeError(iter.type.__repr__(),dest.type.__repr__())
+        return errors.SCLWrongTypeError(iter.type.name,dest.type.name)
     dest.set_value(iter.get_at_index(idx))
 
 def mod_f(args: list[Token]):
@@ -381,7 +381,7 @@ def len_f(args: list[Token]):
     dest_tok = ps.try_get([TokenType.IDT], 1, args)
     dest = ev.get_from_id(dest_tok.value)
     if dest.type != al.DT_TYPES.INT:
-        return errors.SCLWrongTypeError(al.DT_TYPES.INT.__repr__(), dest.type.__repr__())
+        return errors.SCLWrongTypeError(al.DT_TYPES.INT.__repr__(), dest.type.name)
     dest.set_value(iter.length)
 
 def foreach_f(args: list[Token]):

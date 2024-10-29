@@ -38,18 +38,18 @@ def strict_getv(tok: Token, expected_vartype: al.DT_TYPES, isarray=False):
         if var.type == expected_vartype or expected_vartype == al.DT_TYPES.ANY:
             if isarray:
                 if type(var) is not al.Array:
-                    return errors.SCLWrongTypeError(al.Array.__name__,var.type.__repr__())
+                    return errors.SCLWrongTypeError(al.Array.__name__,var.type.name)
             return var.get_value()
-        return errors.SCLWrongTypeError(expected_vartype.__repr__(),var.type.__repr__())
+        return errors.SCLWrongTypeError(expected_vartype.name,var.type.name)
     else:
         if isarray:
             if tok.type == TokenType.ARR:
                 return ps.eval_array_values(tok)
             else:
-                return errors.SCLWrongTypeError(TokenType.ARR.__repr__(),tok.type.__repr__())
+                return errors.SCLWrongTypeError(TokenType.ARR.__repr__(),tok.type.name)
         if tok.type == expected_vartype.get_literal_version():
             return expected_vartype.convert_str_to_value(tok.value)
-    return errors.SCLWrongTypeError(expected_vartype.__repr__(),tok.type.__repr__())
+    return errors.SCLWrongTypeError(expected_vartype.name,tok.type.name)
 
 def replace_varrf_by_value(values: list):
     for i, v in enumerate(values):

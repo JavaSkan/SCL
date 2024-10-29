@@ -16,7 +16,7 @@ class DT_TYPES(Enum):
     NIL  = auto()
 
     def __repr__(self):
-        return self.name[self.name.find('.')+1:]
+        return self.name
 
     def to_python_type(self):
         match self:
@@ -45,7 +45,7 @@ class DT_TYPES(Enum):
                 return DT_TYPES.BOOL
             case 'nil':
                 return DT_TYPES.NIL
-            # 'any' or anything other
+            # 'any' or everything else
             case _:
                 return DT_TYPES.ANY
 
@@ -199,7 +199,7 @@ class Variable(Allocable):
 
 
     def __repr__(self):
-        return f"Var<{self.kind.__repr__()} {self.type.__repr__()}>({self.ident}:{self.vl})"
+        return f"Var<{self.kind.name} {self.type.name}>({self.vl})"
 
 class Array(Allocable,Iterable):
 
@@ -208,7 +208,7 @@ class Array(Allocable,Iterable):
         Iterable.__init__(self,vars)
 
     def __repr__(self):
-        out = f"Array<'{self.ident}' {self.type.__repr__()}>:["
+        out = f"Array<{self.type.name}>:["
         for (i,e) in enumerate(self.items):
             out += f"{e}{',' if i < self.length-1 else ''}"
         out += "]"
@@ -232,7 +232,7 @@ class Function(Allocable):
 
 
     def __repr__(self):
-        return f"Function:('{self.ident}':{self.vl})"
+        return f"Function<{self.type}>({self.vl})"
 
     def new_local(self,local: Allocable):
         ev.alloc(local)
@@ -251,7 +251,7 @@ class Function(Allocable):
             if tok.type == TokenType.VARRF:
                 vr = ev.get_from_id(tok.value)
                 if not vr.type == current_type and current_type != DT_TYPES.ANY:
-                    return err.SCLWrongTypeError(current_type.__repr__(),vr.type.__repr__())
+                    return err.SCLWrongTypeError(current_type.name,vr.type.name)
                 else:
                     if type(vr) is Array:
                         self.new_local(Array(vr.type,current_idt,vr.items))
@@ -275,7 +275,7 @@ class Function(Allocable):
                         Variable(VARKIND.MUT,current_type,current_idt,current_type.convert_str_to_value(tok.value))
                     )
                 else:
-                    return err.SCLWrongTypeError(current_type.__repr__(),tok.type.__repr__())
+                    return err.SCLWrongTypeError(current_type.name, tok.type.name)
 
     def del_locals(self):
         for local in self.locals:
@@ -297,7 +297,7 @@ class Function(Allocable):
                 elif self.type.is_compatible_with_type(str(fexe.evm.fun_ret)):
                     self.set_value(self.type.convert_str_to_value(fexe.evm.fun_ret))
                 else:
-                    return err.SCLWrongReturnTypeError(self.ident,self.type.__repr__(),DT_TYPES.guess_type(fexe.evm.fun_ret).__repr__())
+                    return err.SCLWrongReturnTypeError(self.ident,self.type.name,DT_TYPES.guess_type(fexe.evm.fun_ret).__repr__())
             else:
                 self.set_value(self.type.default_value())
             self.del_locals()
