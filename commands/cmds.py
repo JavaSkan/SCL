@@ -31,7 +31,7 @@ def loop_f(args: list[Token]):
     it_tok = ps.try_get(commands.make_value(TokenType.INT, TokenType.BOOL, TokenType.BLEXP), 0, args)
     body_tok = ps.try_get([TokenType.BODY],1,args)
     instructions = body_tok.value
-    with Executor() as loop_exe:
+    with Executor(environment=ev.CURENV) as loop_exe:
         if (it_int := safe_getv(it_tok, al.DT_TYPES.INT)) != None:
             for i in range(it_int):
                 for ins in instructions:
@@ -351,7 +351,14 @@ def get_f(args: list[Token]):
     idx = strict_getv(idx_tok,al.DT_TYPES.INT)
     dest_tok = ps.try_get([TokenType.IDT], 2, args)
     dest = ev.get_from_id(dest_tok.value)
-    if dest.type != iter.type:
+    if iter.type == DT_TYPES.ANY:
+        idxth = iter.get_at_index(idx) # the i^th element
+        idxth_type = DT_TYPES.guess_type(str(idxth))
+        if idxth_type == dest.type:
+            dest.set_value(idxth)
+        else:
+            return errors.SCLWrongTypeError(idxth_type.name,dest.type.name)
+    elif dest.type != iter.type:
         return errors.SCLWrongTypeError(iter.type.name,dest.type.name)
     dest.set_value(iter.get_at_index(idx))
 
@@ -399,7 +406,7 @@ def foreach_f(args: list[Token]):
     instructions = body_tok.value
 
     element = al.Variable(al.VARKIND.MUT,al.DT_TYPES.ANY,element_ident,None)
-    with Executor() as fore_exec:
+    with Executor(environment=ev.CURENV) as fore_exec:
         ev.alloc(
             element
         )
@@ -416,7 +423,7 @@ def if_f(args: list[Token]):
     true_section_tok = ps.try_get([TokenType.BODY],1,args)
     false_section_tok = ps.try_get([TokenType.BODY],2,args)
 
-    with Executor() as if_exec:
+    with Executor(environment=ev.CURENV) as if_exec:
         if (eval_bool_expr(bool_expr_tok.value)):
             for ins in true_section_tok.value:
                 if_exec.execute(ins)

@@ -23,7 +23,7 @@ def eval_bool_expr(blexp: str):
 
     try:
         result = eval(blexp)
-    except SyntaxError:
-        return SCLInvalidBooleanExprError(org)
+    except Exception as e:
+        return SCLInvalidBooleanExprError(org,py_ind=e.__class__.__name__)
     else:
         return result

@@ -236,10 +236,13 @@ class SCLInvalidEffectiveParameterError(SCLError):
 class SCLInvalidBooleanExprError(SCLError):
     """
     bool_exp: the boolean expression
+    py_ind:  python indication (python error name/type)
     Raised when providing an invalid boolean expression
     """
 
-    def __init__(self, bool_exp: str):
-        super().__init__(f"Invalid boolean expression provided, please check your expression: '{bool_exp}'")
+    def __init__(self, bool_exp: str, py_ind=""):
+        msg = f"Invalid boolean expression provided, please check your expression: '{bool_exp}'"
+        msg += "" if py_ind == "" else f", Python indicates: {py_ind}"
+        super().__init__(msg)
 
 #TODO Syntax Error

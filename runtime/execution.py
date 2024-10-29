@@ -32,6 +32,7 @@ def execute(inst: str | list[Token]) -> None:
 class Executor:
 
     def __init__(self,environment=env.CURENV):
+        #TODO find out why enviroment param is not eq to env.CURENV when doing with Executor(): ...
         self.line   = ''
         self.lexer  = Lexer()
         self.parser = Parser()
