@@ -5,6 +5,9 @@ import parser.tokens
 from parser import keywords as kws
 from runtime import env as ev
 from runtime import execution as exe
+from runtime.allocable import DT_TYPES
+from runtime.env import Environment
+from runtime.errors import SCLWrongTypeError
 from runtime.evaluation import eval_bool_expr
 from . import operations as oper
 from . import manuals
@@ -114,20 +117,24 @@ def set_f(args: list[Token]):
 
     new_v_tok = ps.try_get(commands.make_value(*parser.tokens.all_literals()), 1, args)
     if (new_v := safe_getv(new_v_tok, var.type)) == None:
-        return errors.SCLError(f"Expected argument of type '{var.type.__repr__()}' at position ")
+        return errors.SCLError(f"Expected argument of type '{var.type.__repr__()}' at position 3")
     var.set_value(new_v)
 
 def execute_f(args: list[Token]):
     path_tok = ps.try_get(commands.make_value(TokenType.STR), 0, args)
-    path: str = path_tok.value
+    path = strict_getv(path_tok,DT_TYPES.STR)
     if not os.path.exists(path):
         return errors.SCLNotExistingPathError(path)
     if not os.path.isfile(path):
         return errors.SCLIsNotAFileError(path)
     if not path.endswith('.scl'):
         return errors.SCLWrongExtensionError(path)
+    cross_env_tok = ps.try_get(commands.make_value(TokenType.BOOL), 1, args)
+    if (cross_env := safe_getv(cross_env_tok,DT_TYPES.BOOL)) == None:
+        return SCLWrongTypeError(DT_TYPES.BOOL.__repr__())
     with open(path,'r',encoding="utf-8-sig") as script:
-        with Executor(environment=ev.Environment()) as file_executor:
+        used_env = ev.CURENV if cross_env else Environment()
+        with Executor(environment=used_env) as file_executor:
             file_executor.load_script(script.read())
             parsed_content = file_executor.parser.parse_lines()
             for set_of_tokens in parsed_content:

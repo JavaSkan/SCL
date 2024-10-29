@@ -63,11 +63,13 @@ Syntax: del <name>
 
 EXEC    = '''
 >>> Executes SCl script
-Syntax: exec <file_name_with_extension>
+Syntax: exec <scl_file_path> <cross_environment>
 NOTE:
- -compatible with variable referencing (at <file_name_with_extension> argument)
- -<file_name_with_extension> should be a string literal
- -commands must end with a semicolon, content will be ignored after the full command
+ -compatible with variable referencing (at <file_name_with_extension> and <cross_environment>)
+ -<scl_file_path> is a string
+ -<cross_environment> is a boolean, when true variables, arrays, aliases etc. will remain
+ after the execution in the parent environment, they're deleted otherwise
+ -commands in the file must end with a semicolon, content will be ignored after the full command
 '''
 
 OPERTS  = '''
