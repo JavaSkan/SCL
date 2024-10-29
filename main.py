@@ -16,7 +16,7 @@ def main():
         if os.path.exists(sclpath := (sys.argv[1])):
             if not sclpath.endswith(".scl"):
                 print(f"wrong extension, should end with '.scl'", file=sys.stderr)
-            Executor().execute(f'exec "{sclpath}"')
+            Executor().execute(f'exec "{sclpath}" true')
         else:
             print(f"{sclpath} doest not exist",file=sys.stderr)
     else:
