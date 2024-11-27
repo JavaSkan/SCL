@@ -249,7 +249,7 @@ class Function(Allocable):
             current_type = DT_TYPES.str_to_type(self.pm[i][0])
             current_idt  = self.pm[i][1]
             if tok.type == TokenType.VARRF:
-                vr = ev.get_from_id(tok.value)
+                vr = ev.CURENV.prev_env.get_from_id(tok.value)
                 if not vr.type == current_type and current_type != DT_TYPES.ANY:
                     return err.SCLWrongTypeError(current_type.name,vr.type.name)
                 else:
@@ -257,7 +257,7 @@ class Function(Allocable):
                         self.new_local(Array(vr.type,current_idt,vr.items))
                     else:
                         self.new_local(
-                            Variable(VARKIND.MUT, current_type, current_idt, current_type.default_value())
+                            Variable(VARKIND.MUT, current_type, current_idt, vr.get_value())
                         )
             else:
                 if current_type == DT_TYPES.ANY:
