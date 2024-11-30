@@ -87,6 +87,7 @@ class DT_TYPES(Enum):
             #No literal type for nil type
 
     def convert_str_to_value(self,str_value):
+        str_value = str_value.lower() # for ex: True -> true
         match self:
             case DT_TYPES.INT:
                 return int(str_value)
@@ -108,6 +109,7 @@ class DT_TYPES(Enum):
             case DT_TYPES.STR:
                 return True
             case DT_TYPES.BOOL:
+                str_value = str_value.lower() #ex: True => true
                 return str_value == 'true' or str_value == 'false'
             case DT_TYPES.NIL:
                 return str_value == 'nil'
@@ -199,7 +201,7 @@ class Variable(Allocable):
 
 
     def __repr__(self):
-        return f"Var<{self.kind.name} {self.type.name}>({self.vl})"
+        return f"Var {self.ident}<{self.kind.name} {self.type.name}>({self.vl})"
 
 class Array(Allocable,Iterable):
 
@@ -208,7 +210,7 @@ class Array(Allocable,Iterable):
         Iterable.__init__(self,vars)
 
     def __repr__(self):
-        out = f"Array<{self.type.name}>:["
+        out = f"Array {self.ident}<{self.type.name}>:["
         for (i,e) in enumerate(self.items):
             out += f"{e}{',' if i < self.length-1 else ''}"
         out += "]"
@@ -232,7 +234,7 @@ class Function(Allocable):
 
 
     def __repr__(self):
-        return f"Function<{self.type}>({self.vl})"
+        return f"Function {self.ident}<{self.type}>({self.vl})"
 
     def new_local(self,local: Allocable):
         ev.alloc(local)
@@ -278,10 +280,9 @@ class Function(Allocable):
                     return err.SCLWrongTypeError(current_type.name, tok.type.name)
 
     def del_locals(self):
-        for local in self.locals:
-            self.locals.pop(self.locals.index(local))
-            ev.de_alloc(local)
-
+        for i in range(len(self.locals)):
+            ev.de_alloc(self.locals.pop())
+#TODO use regex to verify compatibility of string with values and in guessing the types
     def execute_fun(self,arguments: list[Token]):
         with Executor(environment=Environment()) as fexe:
             if self.pm != None:
@@ -289,13 +290,13 @@ class Function(Allocable):
                     return setpmerr
             for ins in self.bd:
                 fexe.execute(ins)
-            if fexe.evm.fun_ret:
+            if fexe.evm.fun_ret != None:
                 if self.type == DT_TYPES.NIL:
                     return err.SCLNoReturnValueError(self.ident)
                 elif self.type == DT_TYPES.ANY:
                     self.set_value(fexe.evm.fun_ret)
                 elif self.type.is_compatible_with_type(str(fexe.evm.fun_ret)):
-                    self.set_value(self.type.convert_str_to_value(fexe.evm.fun_ret))
+                    self.set_value(self.type.convert_str_to_value(str(fexe.evm.fun_ret)))
                 else:
                     return err.SCLWrongReturnTypeError(self.ident,self.type.name,DT_TYPES.guess_type(fexe.evm.fun_ret).__repr__())
             else:

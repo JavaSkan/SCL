@@ -31,21 +31,21 @@ def loop_f(args: list[Token]):
     it_tok = ps.try_get(commands.make_value(TokenType.INT, TokenType.BOOL, TokenType.BLEXP), 0, args)
     body_tok = ps.try_get([TokenType.BODY],1,args)
     instructions = body_tok.value
-    with Executor(environment=ev.CURENV) as loop_exe:
-        if (it_int := safe_getv(it_tok, al.DT_TYPES.INT)) != None:
-            for i in range(it_int):
-                for ins in instructions:
-                    loop_exe.execute(ins)
-        elif safe_getv(it_tok, al.DT_TYPES.BOOL) != None:
-            while safe_getv(it_tok, al.DT_TYPES.BOOL):
-                for ins in instructions:
-                    loop_exe.execute(ins)
-        elif it_tok.type == TokenType.BLEXP:
-            while eval_bool_expr(it_tok.value):
-                for ins in instructions:
-                    loop_exe.execute(ins)
-        else:
-            return errors.SCLError("Expected argument of type 'boolean or integer' at position 2")
+    loop_exe = Executor()
+    if (it_int := safe_getv(it_tok, al.DT_TYPES.INT)) != None:
+        for i in range(it_int):
+            for ins in instructions:
+                loop_exe.execute(ins)
+    elif safe_getv(it_tok, al.DT_TYPES.BOOL) != None:
+        while safe_getv(it_tok, al.DT_TYPES.BOOL):
+            for ins in instructions:
+                loop_exe.execute(ins)
+    elif it_tok.type == TokenType.BLEXP:
+        while eval_bool_expr(it_tok.value):
+            for ins in instructions:
+                loop_exe.execute(ins)
+    else:
+        return errors.SCLError("Expected argument of type 'boolean or integer' at position 2")
 
 def new_f(args: list[Token]):
     varkind_tok = ps.try_get([TokenType.IDT], 0, args)
@@ -298,7 +298,7 @@ def ret_f(args: list[Token]):
     vtok = ps.try_get(commands.make_value(*parser.tokens.all_literals()), 0, args)
 
     if vtok.type == TokenType.VARRF:
-        if (val := ul.var_ref(vtok.value).get_value()):
+        if (val := ul.var_ref(vtok.value).get_value()) != None:
             ev.CURENV.fun_ret = val
     else:
         ev.CURENV.fun_ret = vtok.evaluate()
@@ -406,30 +406,30 @@ def foreach_f(args: list[Token]):
     instructions = body_tok.value
 
     element = al.Variable(al.VARKIND.MUT,al.DT_TYPES.ANY,element_ident,None)
-    with Executor(environment=ev.CURENV) as fore_exec:
-        ev.alloc(
-            element
-        )
-        for e in iter.get_items_gen():
-            element.set_value(e)
-            for ins in instructions:
-                fore_exec.execute(ins)
-        ev.de_alloc(
-            element
-        )
+    fore_exec = Executor()
+    ev.alloc(
+        element
+    )
+    for e in iter.get_items_gen():
+        element.set_value(e)
+        for ins in instructions:
+            fore_exec.execute(ins)
+    ev.de_alloc(
+        element
+    )
 
 def if_f(args: list[Token]):
     bool_expr_tok = ps.try_get([TokenType.BLEXP],0,args)
     true_section_tok = ps.try_get([TokenType.BODY],1,args)
     false_section_tok = ps.try_get([TokenType.BODY],2,args)
 
-    with Executor(environment=ev.CURENV) as if_exec:
-        if (eval_bool_expr(bool_expr_tok.value)):
-            for ins in true_section_tok.value:
-                if_exec.execute(ins)
-        else:
-            for ins in false_section_tok.value:
-                if_exec.execute(ins)
+    if_exec = Executor()
+    if (eval_bool_expr(bool_expr_tok.value)):
+        for ins in true_section_tok.value:
+            if_exec.execute(ins)
+    else:
+        for ins in false_section_tok.value:
+            if_exec.execute(ins)
 
 def alias_f(args: list[Token]):
     opt_tok = ps.try_get([TokenType.IDT],0,args)

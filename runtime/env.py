@@ -41,7 +41,7 @@ class Environment:
 
 CURENV = Environment() # Current Environment
 
-@err.dangerous()
+@err.dangerous(note="ALLOC")
 def alloc(element):
     # if (existing_e := _ALCS.get(element.ident)) == None:
     #     element.maddr = len(_ALCS) - 1
@@ -50,7 +50,7 @@ def alloc(element):
     #     return err.SCLAlreadyExistingError(element.ident,existing_e)
     return CURENV.alloc(element)
 
-@err.dangerous()
+@err.dangerous("DE_ALLOC")
 def de_alloc(element):
     # try:
     #     _ALCS.pop(element.ident)
@@ -59,7 +59,7 @@ def de_alloc(element):
     return CURENV.de_alloc(element)
 
 
-@err.dangerous()
+@err.dangerous(note="GET_FROM_ENV")
 def get_from_id(identifier: str):
     # e = _ALCS.get(identifier)
     # return e or err.SCLNotFoundError(identifier)

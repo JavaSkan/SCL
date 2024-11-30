@@ -51,10 +51,12 @@ class Executor:
         self.parser.reset(self.lexer.tokenize())
 
     def init(self):
-        self.evm.use_this_env()
+        if self.evm != env.CURENV:
+            self.evm.use_this_env()
 
     def reset_env(self):
-        env.CURENV = self.evm.prev_env
+        if self.evm.prev_env != None:
+            env.CURENV = self.evm.prev_env
 
     def execute(self, script: str | list):
         if type(script) is str:
